@@ -13,7 +13,6 @@ https://www.youtube.com/watch?v=mnpNePu0bv0
 
 https://dotnet.github.io/Silk.NET/docs/opengl/
 
-## Voronoi cells diagrams
+## Volonoi tesselation
 
-https://en.wikipedia.org/wiki/Voronoi_diagram
-https://www.youtube.com/watch?v=0tKyue60EWM
+https://www.youtube.com/watch?v=I6Fen2Ac-1U
