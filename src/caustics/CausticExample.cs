@@ -1,110 +1,46 @@
-﻿using Silk.NET.OpenGL;
-using Silk.NET.Windowing;
-using System.Runtime.InteropServices;
+﻿using DataViz;
 
-class Program
+namespace DataViz
 {
-    static GL? gl; // Silk.NET OpenGL binding
-    static uint vao, vbo, shader;
-    static IWindow? window1, window2;
-    static float time = 0f;
-
-    static void Main()
+    /// <summary>
+    /// Main entry point for the Caustics Skeleton Application
+    /// Customize the SkeletonApp class to create your own visualizations
+    /// </summary>
+    class Program
     {
-        var opts = WindowOptions.Default with
+        static void Main(string[] args)
         {
-            Size = new Silk.NET.Maths.Vector2D<int>(800, 600),
-            Title = "Caustics"
-        };
+            Console.WriteLine("=== Caustics Visualization Skeleton ===");
+            Console.WriteLine();
+            Console.WriteLine("This is a customizable skeleton application for creating");
+            Console.WriteLine("water-like caustics visualizations with moving points.");
+            Console.WriteLine();
+            Console.WriteLine("Key Features:");
+            Console.WriteLine("- Customizable point movement patterns");
+            Console.WriteLine("- Flexible shader properties per point");
+            Console.WriteLine("- Neighbor detection for wall calculations");
+            Console.WriteLine("- World position tracking");
+            Console.WriteLine("- Easy-to-extend architecture");
+            Console.WriteLine();
+            Console.WriteLine("To customize:");
+            Console.WriteLine("1. Modify the SetupPoints() method in SkeletonApp.cs");
+            Console.WriteLine("2. Create custom PointController classes");
+            Console.WriteLine("3. Create custom ShaderProperties classes");
+            Console.WriteLine("4. Override the SkeletonApp class for advanced features");
+            Console.WriteLine();
 
-        window1 = Window.Create(opts with { Position = new(0, 0) });
-        window2 = Window.Create(opts with { Position = new(900, 0) });
-
-        window1.Load += () => onLoad(window1);
-        window1.Render += onRender;
-
-        window2.Load += () => onLoad(window2);
-        window2.Render += onRender;
-
-        window1.Run();
-        window2.Run();
-    }
-
-    static void onLoad(IWindow w)
-    {
-        gl = GL.GetApi(w);
-
-        float[] vertices = {
-            -0.5f, -0.5f,
-             0.5f, -0.5f,
-             0.5f,  0.5f,
-            -0.5f,  0.5f
-        };
-
-        vao = gl.GenVertexArray();
-        vbo = gl.GenBuffer();
-        gl.BindVertexArray(vao);
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
-
-        // Convert float[] → ReadOnlySpan<float> → pointer
-        ReadOnlySpan<float> data = vertices;
-        gl.BufferData(BufferTargetARB.ArrayBuffer,
-            (nuint)(data.Length * sizeof(float)),
-            ref MemoryMarshal.GetReference(data),
-            BufferUsageARB.StaticDraw);
-
-        gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
-        gl.EnableVertexAttribArray(0);
-
-        shader = CompileShader("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
-    }
-
-    static void onRender(double delta)
-    {
-        if (gl is null) return;
-
-        time += (float)delta;
-        gl.Clear((uint)ClearBufferMask.ColorBufferBit);
-        gl.UseProgram(shader);
-
-        int timeLoc = gl.GetUniformLocation(shader, "iTime");
-        gl.Uniform1(timeLoc, time);
-        gl.BindVertexArray(vao);
-        gl.DrawArrays(PrimitiveType.TriangleFan, 0, 4);
-    }
-
-    static uint CompileShader(string vertexPath, string fragmentPath)
-    {
-        string vsrc = File.ReadAllText(vertexPath);
-        string fsrc = File.ReadAllText(fragmentPath);
-
-        uint vs = gl!.CreateShader(ShaderType.VertexShader);
-        gl.ShaderSource(vs, vsrc);
-        gl.CompileShader(vs);
-        CheckShaderCompile(vs);
-
-        uint fs = gl.CreateShader(ShaderType.FragmentShader);
-        gl.ShaderSource(fs, fsrc);
-        gl.CompileShader(fs);
-        CheckShaderCompile(fs);
-
-        uint prog = gl.CreateProgram();
-        gl.AttachShader(prog, vs);
-        gl.AttachShader(prog, fs);
-        gl.LinkProgram(prog);
-
-        gl.DeleteShader(vs);
-        gl.DeleteShader(fs);
-        return prog;
-    }
-
-    static void CheckShaderCompile(uint shaderObj)
-    {
-        gl!.GetShader(shaderObj, ShaderParameterName.CompileStatus, out int status);
-        if (status == 0)
-        {
-            string info = gl.GetShaderInfoLog(shaderObj);
-            throw new Exception("Shader compile error: " + info);
+            try
+            {
+                var app = new SkeletonApp();
+                app.Run();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                Console.WriteLine("Press any key to exit...");
+                Console.ReadKey();
+            }
         }
     }
 }
