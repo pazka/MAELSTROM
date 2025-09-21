@@ -9,7 +9,7 @@ class Program
     static IWindow? window1, window2;
     static float time = 0f;
 
-    static void Main()
+    static void CausticMain()
     {
         var opts = WindowOptions.Default with
         {
