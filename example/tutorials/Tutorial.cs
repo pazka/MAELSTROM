@@ -194,6 +194,7 @@ void main()
         _gl.ActiveTexture(TextureUnit.Texture0) //aautomatically find he texture0 because right after
         ; _gl.BindTexture(TextureTarget.Texture2D, _texture);
 
+        //The 6 is simply the number of elements in our EBO. Remember, a quad is two triangles, with three vertices per triangle, making six vertices total.
         _gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (void*)0);
     }
 }

@@ -70,6 +70,11 @@ namespace maelstrom_poc
         public IReadOnlyList<DisplayObject> Objects => _objects.AsReadOnly();
 
         /// <summary>
+        /// Get current time
+        /// </summary>
+        public float GetTime() => _time;
+
+        /// <summary>
         /// Clean up all objects
         /// </summary>
         public void Dispose()
