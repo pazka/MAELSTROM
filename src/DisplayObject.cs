@@ -3,6 +3,7 @@ using Silk.NET.Maths;
 
 namespace maelstrom_poc
 {
+    using Point = Vector2D<float>;
     /// <summary>
     /// Represents an object that displays a shader at a specific world position
     /// </summary>
@@ -13,141 +14,160 @@ namespace maelstrom_poc
         private readonly uint _vbo;
         private readonly uint _ebo;
         private readonly uint _shaderProgram;
-        private readonly int _positionUniformLocation;
         private readonly int _timeUniformLocation;
 
-        public Vector2D<float> Position { get; set; }
-        public Vector2D<float> Scale { get; set; } = new Vector2D<float>(1.0f, 1.0f);
-        public float Rotation { get; set; } = 0.0f;
-
-        // Movement properties
-        private Vector2D<float> _velocity;
-        private Vector2D<float> _targetPosition;
-        private float _moveTimer;
+        private float[] _vertices;
+        private readonly uint[] _indices;
+        private Point _velocity;
+        private Point _targetPosition;
         private readonly Random _random;
+        public Point Position { get { return new Point(_vertices[8 * 4], _vertices[8 * 4 + 1]); } }
 
-        public unsafe DisplayObject(GL gl, uint shaderProgram, Vector2D<float> position)
+
+        public unsafe DisplayObject(GL gl, uint shaderProgram, Point position)
         {
             _gl = gl;
             _shaderProgram = shaderProgram;
-            Position = position;
             _random = new Random();
 
-            // Initialize movement
             _targetPosition = position;
-            _velocity = Vector2D<float>.Zero;
-            _moveTimer = 0.0f;
+            _velocity = Point.Zero;
 
-            // Get uniform locations
-            _positionUniformLocation = _gl.GetUniformLocation(_shaderProgram, "uObjectPosition");
             _timeUniformLocation = _gl.GetUniformLocation(_shaderProgram, "iTime");
 
-            // Create quad geometry (centered at origin, will be transformed by position)
-            float[] vertices = {
-                // Position     // UV Coords
-                -0.5f, -0.5f,   0.0f, 0.0f,  // Bottom-left
-                 0.5f, -0.5f,   1.0f, 0.0f,  // Bottom-right
-                 0.5f,  0.5f,   1.0f, 1.0f,  // Top-right
-                -0.5f,  0.5f,   0.0f, 1.0f   // Top-left
+            //vertex and texture coordinates
+            _vertices = new float[] {
+                1f, -1f,                    1.0f, 0.0f,
+                1.0f, 0.0f,                 1.0f, 0.5f,
+                1f, 1f,                     1.0f, 1.0f,
+                0.0f, 1.0f,                 0.5f, 1.0f,
+                -1f, 1f,                    0.0f, 1.0f,
+                -1.0f, 0.0f,                0.0f, 0.5f,
+                -1f, -1f,                   0.0f, 0.0f,
+                0.0f, -1.0f,                0.5f, 0.0f,
+                position.X, position.Y,     0.5f, 0.5f,
             };
 
-            uint[] indices = {
-                0, 1, 2,  // First triangle
-                2, 3, 0   // Second triangle
+            _indices = new uint[] {
+                0,1,8, 1,2,8, 2,3,8, 3,4,8,
+                4,5,8, 5,6,8, 6,7,8, 7,0,8
             };
 
-            // Create and bind VAO
+            // VAO: Binds vertex layout to GPU state machine
             _vao = _gl.GenVertexArray();
             _gl.BindVertexArray(_vao);
 
-            // Create and bind VBO
+            // VBO: Uploads vertex data to GPU memory
             _vbo = _gl.GenBuffer();
             _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vbo);
-            fixed (float* ptr = vertices)
+            fixed (float* ptr = _vertices)
             {
                 _gl.BufferData(BufferTargetARB.ArrayBuffer,
-                    (nuint)(vertices.Length * sizeof(float)),
-                    ptr, BufferUsageARB.StaticDraw);
+                    (nuint)(_vertices.Length * sizeof(float)),
+                    ptr, BufferUsageARB.DynamicDraw);
             }
 
-            // Create and bind EBO
+            // EBO: Uploads triangle indices to GPU memory
             _ebo = _gl.GenBuffer();
             _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _ebo);
-            fixed (uint* ptr = indices)
+            fixed (uint* ptr = _indices)
             {
                 _gl.BufferData(BufferTargetARB.ElementArrayBuffer,
-                    (nuint)(indices.Length * sizeof(uint)),
+                    (nuint)(_indices.Length * sizeof(uint)),
                     ptr, BufferUsageARB.StaticDraw);
             }
 
-            // Set up vertex attributes
-            // Position attribute (location 0)
+            // Vertex attributes: Tells GPU how to interpret vertex data
             _gl.EnableVertexAttribArray(0);
             _gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false,
                 4 * sizeof(float), (void*)0);
 
-            // UV attribute (location 1)
             _gl.EnableVertexAttribArray(1);
             _gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false,
                 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
-            // Unbind
             _gl.BindVertexArray(0);
             _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
             _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
         }
 
-        /// <summary>
-        /// Update the object's position with random movement
-        /// </summary>
         public void Update(float deltaTime)
         {
-            _moveTimer += deltaTime;
 
-            // Change target position every 2-4 seconds
-            if (_moveTimer >= 2.0f + (float)_random.NextDouble() * 2.0f)
+        }
+
+        public void SetVertexPosition(int vertexIndex, float x, float y)
+        {
+            if (vertexIndex < 0 || vertexIndex >= 8) return;
+
+            int arrayIndex = vertexIndex * 4;
+            _vertices[arrayIndex] = x;
+            _vertices[arrayIndex + 1] = y;
+        }
+
+        public void SetVertexPositions(List<Point> positions)
+        {
+            int nbToAssign = Math.Min(positions.Count, 8);
+
+            for (int i = 0; i < nbToAssign; i++)
             {
-                _moveTimer = 0.0f;
-                _targetPosition = new Vector2D<float>(
-                    (float)(_random.NextDouble() * 4.0 - 2.0),  // -2 to 2
-                    (float)(_random.NextDouble() * 4.0 - 2.0)   // -2 to 2
-                );
+                SetVertexPosition(i, positions[i].X, positions[i].Y);
             }
-
-            // Smooth movement towards target
-            float moveSpeed = 0.5f; // Adjust this to make objects move faster/slower
-            Vector2D<float> direction = _targetPosition - Position;
-            float distance = MathF.Sqrt(direction.X * direction.X + direction.Y * direction.Y);
-
-            if (distance > 0.01f) // Small threshold to prevent jittering
+            for (int i = nbToAssign; i < 8; i++)
             {
-                direction = new Vector2D<float>(direction.X / distance, direction.Y / distance);
-                _velocity = direction * moveSpeed * deltaTime;
-                Position += _velocity;
+                SetVertexPosition(i, positions[0].X, positions[0].Y);
             }
         }
 
-        /// <summary>
-        /// Renders this shader object at its world position
-        /// </summary>
+        public void SetObjectPosition(float x, float y)
+        {
+            //the end vertex is the center
+            int arrayIndex = 8 * 4;
+            _vertices[arrayIndex] = x;
+            _vertices[arrayIndex + 1] = y;
+        }
+
+        public Point[] GetVertexPositions()
+        {
+            Point[] positions = new Point[_vertices.Length / 4];
+
+            for (int i = 0; i < _vertices.Length / 4; i++)
+            {
+                int arrayIndex = i * 4;
+                positions[i] = new Point(_vertices[arrayIndex], _vertices[arrayIndex + 1]);
+            }
+            return positions;
+        }
+
+
+        // BufferSubData: Updates GPU buffer with modified vertex data
+        private unsafe void UpdateVertexBuffer()
+        {
+            _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vbo);
+            fixed (float* ptr = _vertices)
+            {
+                _gl.BufferSubData(BufferTargetARB.ArrayBuffer, 0,
+                    (nuint)(_vertices.Length * sizeof(float)), ptr);
+            }
+        }
+
+        // Render pipeline: Upload data → Bind shader → Bind VAO → Set uniforms → Draw
         public unsafe void Render(float time)
         {
+            UpdateVertexBuffer();
+
+            // UseProgram: Activates shader pipeline on GPU
             _gl.UseProgram(_shaderProgram);
+            // BindVertexArray: Restores vertex layout and buffer bindings
             _gl.BindVertexArray(_vao);
 
-            // Pass the object's world position to the shader
-            _gl.Uniform2(_positionUniformLocation, Position.X, Position.Y);
-
-            // Pass time for animated shaders
+            // Uniforms: Pass data to shader (executes on GPU)
             _gl.Uniform1(_timeUniformLocation, time);
 
-            // Draw the quad
-            _gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (void*)0);
+            // DrawElements: Triggers GPU to process vertices and render triangles
+            _gl.DrawElements(PrimitiveType.Triangles, 24, DrawElementsType.UnsignedInt, (void*)0);
         }
 
-        /// <summary>
-        /// Clean up OpenGL resources
-        /// </summary>
         public void Dispose()
         {
             _gl.DeleteVertexArray(_vao);

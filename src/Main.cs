@@ -3,9 +3,11 @@ using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 
 namespace maelstrom_poc
 {
+    using Point = Vector2D<float>;
     public class Program
     {
         private static IWindow _window;
@@ -13,19 +15,23 @@ namespace maelstrom_poc
         private static Renderer _renderer;
         private static ShaderManager _shaderManager;
         private static uint _causticShader;
+        private static Vector2D<int> _screenSize = new(1080, 720);
+        private static IInputContext _inputContext;
+        private static Point _mousePosition = new(0, 0);
 
         public static void Main(string[] args)
         {
             WindowOptions options = WindowOptions.Default with
             {
-                Size = new Vector2D<int>(1920, 1080),
-                Title = "2D Shader Objects Demo"
+                Size = _screenSize,
+                Title = "MAELSTROM !"
             };
 
             _window = Window.Create(options);
             _window.Load += OnLoad;
             _window.Update += OnUpdate;
             _window.Render += OnRender;
+            _window.Resize += OnResize;
             _window.Closing += OnClosing;
 
             _window.Run();
@@ -37,56 +43,64 @@ namespace maelstrom_poc
             _gl = _window.CreateOpenGL();
             _gl.ClearColor(Color.Black);
             _gl.Enable(EnableCap.Blend);
-            _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.SrcAlpha);
 
             // Initialize managers
             _shaderManager = new ShaderManager(_gl);
             _renderer = new Renderer(_gl);
 
             // Load shaders
-            _causticShader = _shaderManager.LoadShader("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
+            _causticShader = _shaderManager.LoadShader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
 
             // Create some shader objects at different positions
-            CreateDemoObjects();
+            InitializeObjects();
 
             // Set up input
-            IInputContext input = _window.CreateInput();
-            for (int i = 0; i < input.Keyboards.Count; i++)
+            _inputContext = _window.CreateInput();
+            for (int i = 0; i < _inputContext.Keyboards.Count; i++)
             {
-                input.Keyboards[i].KeyDown += OnKeyDown;
+                _inputContext.Keyboards[i].KeyDown += OnKeyDown;
+            }
+
+            for (int i = 0; i < _inputContext.Mice.Count; i++)
+            {
+                _inputContext.Mice[i].MouseMove += OnMouseMove;
             }
         }
 
-        private static void CreateDemoObjects()
+        private static void InitializeObjects()
         {
-            // Create multiple shader objects at different world positions
-            var positions = new Vector2D<float>[]
+            int objectNb = 1;
+            var random = new Random();
+            for (int i = 0; i < objectNb; i++)
             {
-                new Vector2D<float>(-2.0f, 1.0f),   // Top-left
-                new Vector2D<float>(0.0f, 1.0f),    // Top-center
-                new Vector2D<float>(2.0f, 1.0f),    // Top-right
-                new Vector2D<float>(-2.0f, -1.0f),  // Bottom-left
-                new Vector2D<float>(0.0f, -1.0f),   // Bottom-center
-                new Vector2D<float>(2.0f, -1.0f),   // Bottom-right
-                new Vector2D<float>(-1.0f, 0.0f),   // Left-center
-                new Vector2D<float>(1.0f, 0.0f),    // Right-center
-            };
-
-            foreach (var pos in positions)
-            {
-                var shaderObject = new DisplayObject(_gl, _causticShader, pos);
+                var randomPosition = new Point((float)random.NextDouble() * 2 - 1, (float)random.NextDouble() * 2 - 1);
+                var shaderObject = new DisplayObject(_gl, _causticShader, randomPosition);
                 _renderer.AddObject(shaderObject);
             }
+
+            // Voronoi.InitVoronoi(_renderer.Objects.ToList());
+            // Voronoi.ComputeVoronoi();
         }
 
         private static void OnUpdate(double deltaTime)
         {
+            // Update object position to follow mouse
+            _renderer.Objects[0].SetObjectPosition((_mousePosition.X / _screenSize.X) * 2 - 1, -((_mousePosition.Y / _screenSize.Y) * 2 - 1));
+
             _renderer.Update(deltaTime);
+            // Voronoi.ComputeVoronoi(_renderer.GetTime());
         }
 
         private static void OnRender(double deltaTime)
         {
+            _gl.Clear(ClearBufferMask.ColorBufferBit);
             _renderer.Render();
+        }
+
+        private static void OnMouseMove(IMouse mouse, System.Numerics.Vector2 position)
+        {
+            _mousePosition = new Point(position.X, position.Y);
         }
 
         private static void OnKeyDown(IKeyboard keyboard, Key key, int keyCode)
@@ -96,28 +110,14 @@ namespace maelstrom_poc
                 case Key.Escape:
                     _window.Close();
                     break;
-
-                case Key.Space:
-                    // Add a new random shader object
-                    var random = new Random();
-                    var randomPos = new Vector2D<float>(
-                        (float)(random.NextDouble() * 4.0 - 2.0),  // -2 to 2
-                        (float)(random.NextDouble() * 4.0 - 2.0)   // -2 to 2
-                    );
-                    var newObject = new DisplayObject(_gl, _causticShader, randomPos);
-                    _renderer.AddObject(newObject);
-                    break;
-
-                case Key.R:
-                    // Remove the last added object
-                    if (_renderer.Objects.Count > 0)
-                    {
-                        var lastObject = _renderer.Objects[_renderer.Objects.Count - 1];
-                        _renderer.RemoveObject(lastObject);
-                        lastObject.Dispose();
-                    }
-                    break;
             }
+        }
+
+        private static void OnResize(Vector2D<int> size)
+        {
+            _screenSize = size;
+            _window.Size = _screenSize;
+            _gl.Viewport(0, 0, (uint)_screenSize.X, (uint)_screenSize.Y);
         }
 
         private static void OnClosing()
