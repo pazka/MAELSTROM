@@ -15,6 +15,8 @@ namespace maelstrom_poc
         private static ShaderManager _shaderManager;
         private static uint _causticShader;
         private static Vector2D<int> _screenSize = new Vector2D<int>(1080, 720);
+        private static Point _mousePosition = new Point(0, 0);
+        private static IInputContext _inputContext;
 
         public static void Main(string[] args)
         {
@@ -40,7 +42,7 @@ namespace maelstrom_poc
             _gl = _window.CreateOpenGL();
             _gl.ClearColor(Color.Black);
             _gl.Enable(EnableCap.Blend);
-            _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.SrcAlpha);
+            _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrc1Alpha);
 
             // Initialize managers
             _shaderManager = new ShaderManager(_gl);
@@ -53,16 +55,23 @@ namespace maelstrom_poc
             InitializeObjects();
 
             // Set up input
-            IInputContext input = _window.CreateInput();
-            for (int i = 0; i < input.Keyboards.Count; i++)
+            _inputContext = _window.CreateInput();
+            for (int i = 0; i < _inputContext.Keyboards.Count; i++)
             {
-                input.Keyboards[i].KeyDown += OnKeyDown;
+                _inputContext.Keyboards[i].KeyDown += OnKeyDown;
+            }
+
+            // Set up mouse input
+            for (int i = 0; i < _inputContext.Mice.Count; i++)
+            {
+                _inputContext.Mice[i].MouseDown += OnMouseDown;
+                _inputContext.Mice[i].MouseUp += OnMouseUp;
             }
         }
 
         private static void InitializeObjects()
         {
-            int objectNb = 1;
+            int objectNb = 5;
             var random = new Random();
             for (int i = 0; i < objectNb; i++)
             {
@@ -71,17 +80,32 @@ namespace maelstrom_poc
                 _renderer.AddObject(shaderObject);
             }
 
-            // Voronoi.InitVoronoi(_renderer.Objects.ToList());
+            Voronoi.InitVoronoi(_renderer.Objects.ToList());
             // Voronoi.ComputeVoronoi();
         }
 
         private static void OnUpdate(double deltaTime)
         {
-            var random = new Random();
-            _renderer.Objects[0].SetObjectPosition(_renderer.Objects[0].Position.X + ((float)random.NextDouble() * 2 - 1) / 100, _renderer.Objects[0].Position.Y + ((float)random.NextDouble() * 2 - 1) / 100);
+            // Get current mouse position
+            if (_inputContext.Mice.Count > 0)
+            {
+                var mouse = _inputContext.Mice[0];
+                var rawPosition = mouse.Position;
+
+                // Convert screen coordinates to normalized coordinates (-1 to 1)
+                _mousePosition = new Point(
+                    (float)(rawPosition.X / _screenSize.X) * 2.0f - 1.0f,
+                    1.0f - (float)(rawPosition.Y / _screenSize.Y) * 2.0f
+                );
+            }
+
+
+            // You can access the current mouse position here using _mousePosition
+            // For example, to make an object follow the mouse:
+            //_renderer.Objects[0].SetObjectPosition(_mousePosition.X, _mousePosition.Y);
 
             _renderer.Update(deltaTime);
-            // Voronoi.ComputeVoronoi(_renderer.GetTime());
+            Voronoi.ComputeVoronoi(_renderer.GetTime());
         }
 
         private static void OnRender(double deltaTime)
@@ -100,6 +124,21 @@ namespace maelstrom_poc
             }
         }
 
+
+        private static void OnMouseDown(IMouse mouse, MouseButton button)
+        {
+            if (button == MouseButton.Left)
+            {
+                Console.WriteLine($"Mouse clicked at: {_mousePosition}");
+                // You can use _mousePosition here for your application logic
+            }
+        }
+
+        private static void OnMouseUp(IMouse mouse, MouseButton button)
+        {
+            // Handle mouse up events if needed
+        }
+
         private static void OnResize(Vector2D<int> size)
         {
             _screenSize = size;
@@ -111,6 +150,23 @@ namespace maelstrom_poc
         {
             _renderer?.Dispose();
             _shaderManager?.Dispose();
+        }
+
+        // Public method to get current mouse position (normalized coordinates -1 to 1)
+        public static Point GetMousePosition()
+        {
+            return _mousePosition;
+        }
+
+        // Public method to get raw mouse position (screen coordinates)
+        public static Point GetRawMousePosition()
+        {
+            if (_inputContext?.Mice.Count > 0)
+            {
+                var mouse = _inputContext.Mice[0];
+                return new Point(mouse.Position.X, mouse.Position.Y);
+            }
+            return new Point(0, 0);
         }
     }
 }
