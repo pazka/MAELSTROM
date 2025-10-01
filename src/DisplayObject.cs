@@ -93,7 +93,21 @@ namespace maelstrom_poc
 
         public void Update(float deltaTime)
         {
+            Point newPosition = new(Utils.Lerp(Position.X, _targetPosition.X, (float)deltaTime), Utils.Lerp(Position.Y, _targetPosition.Y, (float)deltaTime));
+            SetObjectPosition(newPosition.X, newPosition.Y);
 
+            // if the distance between the position and the target position is less than 0.01, set the target position to the position
+            if (Vector2D.Distance(Position, _targetPosition) < 0.01)
+            {
+                _targetPosition = Position;
+            }
+
+            // if the distance between the position and the target position is less than 0.01, set the target position to the position
+            if (Vector2D.Distance(Position, _targetPosition) < 0.01)
+            {
+                var random = new Random();
+                SetObjectPosition((float)random.NextDouble() * 2 - 1, (float)random.NextDouble() * 2 - 1);
+            }
         }
 
         public void SetVertexPosition(int vertexIndex, float x, float y)
@@ -125,6 +139,11 @@ namespace maelstrom_poc
             int arrayIndex = 8 * 4;
             _vertices[arrayIndex] = x;
             _vertices[arrayIndex + 1] = y;
+        }
+
+        public void moveTo(float x, float y)
+        {
+            _targetPosition = new Point(x, y);
         }
 
         public Point[] GetVertexPositions()

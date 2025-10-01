@@ -19,6 +19,11 @@ namespace maelstrom_poc
         private static IInputContext _inputContext;
         private static Point _mousePosition = new(0, 0);
 
+        // FPS tracking
+        private static int _frameCount = 0;
+        private static double _fpsTimer = 0.0;
+        private static double _fpsUpdateInterval = 0.5; // Update FPS every 0.5 seconds
+
         public static void Main(string[] args)
         {
             WindowOptions options = WindowOptions.Default with
@@ -70,7 +75,7 @@ namespace maelstrom_poc
 
         private static void InitializeObjects()
         {
-            int objectNb = 1;
+            int objectNb = 500;
             var random = new Random();
             for (int i = 0; i < objectNb; i++)
             {
@@ -79,23 +84,35 @@ namespace maelstrom_poc
                 _renderer.AddObject(shaderObject);
             }
 
-            // Voronoi.InitVoronoi(_renderer.Objects.ToList());
-            // Voronoi.ComputeVoronoi();
+            Voronoi.InitVoronoi(_renderer.Objects.ToList());
+            Voronoi.ComputeVoronoi();
         }
 
         private static void OnUpdate(double deltaTime)
         {
             // Update object position to follow mouse
-            _renderer.Objects[0].SetObjectPosition((_mousePosition.X / _screenSize.X) * 2 - 1, -((_mousePosition.Y / _screenSize.Y) * 2 - 1));
-
             _renderer.Update(deltaTime);
-            // Voronoi.ComputeVoronoi(_renderer.GetTime());
+            Voronoi.ComputeVoronoi(_renderer.GetTime());
         }
 
         private static void OnRender(double deltaTime)
         {
             _gl.Clear(ClearBufferMask.ColorBufferBit);
             _renderer.Render();
+
+            // Update FPS counter
+            _frameCount++;
+            _fpsTimer += deltaTime;
+
+            if (_fpsTimer >= _fpsUpdateInterval)
+            {
+                double fps = _frameCount / _fpsTimer;
+                _window.Title = $"MAELSTROM ! - FPS: {fps:F1}";
+
+                // Reset counters
+                _frameCount = 0;
+                _fpsTimer = 0.0;
+            }
         }
 
         private static void OnMouseMove(IMouse mouse, System.Numerics.Vector2 position)

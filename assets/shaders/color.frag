@@ -6,7 +6,7 @@ uniform float iTime;
 void main()
 {
     float limit = 0.01;
-    float d = distance(uv, vec2(0.5, 0.5))*2;
+    float d = distance(uv, vec2(0, 0));
     
     // Check if we're near the edge of the fragment (uv coordinates from 0 to 1)
     float edgeThreshold = 0.02;
@@ -14,10 +14,10 @@ void main()
                     uv.y < edgeThreshold || uv.y > abs(1.0 - edgeThreshold);
     
     // Create the base gradient color
-    vec3 baseColor = vec3(smoothstep(1, 0.0, d));
+    vec3 baseColor = vec3(mix(0.5, 0.0, d));
     
     // If near edge, make it white, otherwise use base color
-    vec3 finalColor = nearEdge ? vec3(1.0,0,0) : baseColor;
+    vec3 finalColor = nearEdge ? vec3(1.0) : baseColor;
 
     FragColor = vec4(finalColor, 1.0);
 }

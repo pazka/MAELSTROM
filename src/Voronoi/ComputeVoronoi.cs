@@ -43,8 +43,10 @@ namespace maelstrom_poc
                 new(0.0f, -1.0f),
             };
 
+            List<DisplayObject> closestObjects = _displayObjects.Where(o => Vector2D.Distance(o.Position, currentCenter) < 0.3f).ToList();
+
             // Process each other object
-            foreach (var otherObject in _displayObjects)
+            foreach (var otherObject in closestObjects)
             {
                 if (otherObject == displayObject) continue;
 
@@ -59,9 +61,10 @@ namespace maelstrom_poc
                     continue;
                 }
 
-                //List<Point> shortenedCellVertices = projectOtherGroupIntoObjectGroup(displayObject.Position, newObjectVertices, leftOverGroup);
+                List<Point> shortenedCellVertices = BringPointsAboveLimitCloserToObject(displayObject.Position, newObjectVertices, 0.3f);
 
                 // ## UPDATE THE DISPLAY OBJECT  WITH THE SHORTENED CELL ##
+                currentVertices = shortenedCellVertices.ToArray();
                 displayObject.SetVertexPositions(newObjectVertices);
             }
         }
@@ -104,6 +107,24 @@ namespace maelstrom_poc
                 groupWithObjectPosition = groupToProject;
                 groupToProject = tmpVerticesGroup;
             }
+        }
+
+        public static List<Point> BringPointsAboveLimitCloserToObject(Point objectPosition, List<Point> points, float limit)
+        {
+            List<Point> result = new();
+            foreach (var point in points)
+            {
+                if (Vector2D.Distance(point, objectPosition) < limit)
+                {
+                    result.Add(point);
+                }
+                else
+                {
+                    //bring the point in the direction but the distance is the limit
+                    result.Add(objectPosition + Utils.Normalized(point - objectPosition) * limit);
+                }
+            }
+            return result;
         }
 
         public static List<Point> projectOtherGroupIntoObjectGroup(Point objectPosition, List<Point> objectGroup, List<Point> groupToProject)

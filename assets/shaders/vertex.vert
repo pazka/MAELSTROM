@@ -10,7 +10,7 @@ uniform float iTime;           // Time for animations
 void main() 
 {    
     // Pass UV coordinates to fragment shader
-    uv = aTexCoord * 2.0 - 1.0;
+    uv = aTexCoord;
     
     // Set final position (for 2D, we keep z=0 and w=1)
     gl_Position = vec4(aPos, 0.0, 1.0);  
