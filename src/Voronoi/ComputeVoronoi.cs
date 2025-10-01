@@ -46,7 +46,7 @@ namespace maelstrom_poc
             List<DisplayObject> closestObjects = _displayObjects.Where(o => Vector2D.Distance(o.Position, currentCenter) < 0.3f).ToList();
 
             // Process each other object
-            foreach (var otherObject in closestObjects)
+            foreach (var otherObject in _displayObjects)
             {
                 if (otherObject == displayObject) continue;
 
@@ -61,10 +61,10 @@ namespace maelstrom_poc
                     continue;
                 }
 
-                List<Point> shortenedCellVertices = BringPointsAboveLimitCloserToObject(displayObject.Position, newObjectVertices, 0.3f);
+                // List<Point> shortenedCellVertices = BringPointsAboveLimitCloserToObject(displayObject.Position, newObjectVertices, 0.5f);
 
                 // ## UPDATE THE DISPLAY OBJECT  WITH THE SHORTENED CELL ##
-                currentVertices = shortenedCellVertices.ToArray();
+                currentVertices = newObjectVertices.ToArray();
                 displayObject.SetVertexPositions(newObjectVertices);
             }
         }
@@ -121,7 +121,8 @@ namespace maelstrom_poc
                 else
                 {
                     //bring the point in the direction but the distance is the limit
-                    result.Add(objectPosition + Utils.Normalized(point - objectPosition) * limit);
+                    Line2D line = new(objectPosition, point);
+                    result.Add(objectPosition + line.Direction * limit);
                 }
             }
             return result;

@@ -75,7 +75,7 @@ namespace maelstrom_poc
 
         private static void InitializeObjects()
         {
-            int objectNb = 500;
+            int objectNb = 50;
             var random = new Random();
             for (int i = 0; i < objectNb; i++)
             {
