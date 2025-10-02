@@ -15,6 +15,8 @@ namespace maelstrom_poc
         private static Renderer _renderer;
         private static ShaderManager _shaderManager;
         private static uint _causticShader;
+        private static uint _postProcessShader;
+        private static PostProcessor _postProcessor;
         private static Vector2D<int> _screenSize = new(1920, 1080);
         private static IInputContext _inputContext;
         private static Point _mousePosition = new(0, 0);
@@ -54,9 +56,13 @@ namespace maelstrom_poc
 
             // Load shaders
             _causticShader = _shaderManager.LoadShader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
+            _postProcessShader = _shaderManager.LoadShader("assets/shaders/postprocess_vertex.vert", "assets/shaders/postprocess_fragment.frag");
 
             // Create some shader objects at different positions
             InitializeObjects();
+
+            // Initialize post-processor
+            _postProcessor = new PostProcessor(_gl, _postProcessShader, _screenSize);
 
             // Set up input
             _inputContext = _window.CreateInput();
@@ -95,8 +101,14 @@ namespace maelstrom_poc
 
         private static void OnRender(double deltaTime)
         {
-            _gl.Clear(ClearBufferMask.ColorBufferBit);
+            // Begin rendering to framebuffer
+            _postProcessor.BeginRender();
+            
+            // Render the scene
             _renderer.Render();
+            
+            // End rendering and apply post-processing
+            _postProcessor.EndRender(_renderer.GetTime());
 
             // Update FPS counter
             _frameCount++;
@@ -133,10 +145,14 @@ namespace maelstrom_poc
             _screenSize = size;
             _window.Size = _screenSize;
             _gl.Viewport(0, 0, (uint)_screenSize.X, (uint)_screenSize.Y);
+            
+            // Update post-processor with new screen size
+            _postProcessor?.UpdateScreenSize(_screenSize);
         }
 
         private static void OnClosing()
         {
+            _postProcessor?.Dispose();
             _renderer?.Dispose();
             _shaderManager?.Dispose();
         }
