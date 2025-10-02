@@ -49,14 +49,14 @@ namespace maelstrom_poc
             _framebuffer = _gl.GenFramebuffer();
             _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _framebuffer);
 
-            // Create render texture
+            // Create render texture with RGBA format for better compatibility
             _renderTexture = _gl.GenTexture();
             _gl.BindTexture(TextureTarget.Texture2D, _renderTexture);
             unsafe
             {
-                _gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgb, 
+                _gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba, 
                     (uint)_screenSize.X, (uint)_screenSize.Y, 0, 
-                    PixelFormat.Rgb, PixelType.UnsignedByte, (void*)null);
+                    PixelFormat.Rgba, PixelType.UnsignedByte, (void*)null);
             }
             
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.Linear);
@@ -131,7 +131,7 @@ namespace maelstrom_poc
         public void BeginRender()
         {
             _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _framebuffer);
-            _gl.Viewport(0, 0, (uint)_screenSize.X, (uint)_screenSize.Y);
+           
             _gl.Clear(ClearBufferMask.ColorBufferBit);
         }
 
@@ -142,7 +142,6 @@ namespace maelstrom_poc
         {
             // Switch back to default framebuffer
             _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            _gl.Viewport(0, 0, (uint)_screenSize.X, (uint)_screenSize.Y);
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
             // Disable depth testing for post-processing
@@ -183,9 +182,9 @@ namespace maelstrom_poc
             _gl.BindTexture(TextureTarget.Texture2D, _renderTexture);
             unsafe
             {
-                _gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgb,
+                _gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba,
                     (uint)_screenSize.X, (uint)_screenSize.Y, 0,
-                    PixelFormat.Rgb, PixelType.UnsignedByte, (void*)null);
+                    PixelFormat.Rgba, PixelType.UnsignedByte, (void*)null);
             }
         }
 

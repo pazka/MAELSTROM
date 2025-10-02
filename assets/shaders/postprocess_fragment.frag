@@ -32,8 +32,8 @@ float perlinNoise(vec2 st) {
     
     for (int i = 0; i < 4; i++) {
         value += amplitude * smoothNoise(st * frequency);
-        amplitude *= 0.5;
-        frequency *= 2.0;
+        amplitude *= 1;
+        frequency *= 1.0;
     }
     
     return value;
@@ -82,40 +82,10 @@ vec2 waterDistortion(vec2 uv, float time) {
     return (totalDistortion - 0.5) * 2.0;
 }
 
-// Enhanced edge detection with organic randomness
-float edgeDetection(vec2 uv) {
-    float edge = 0.0;
-    
-    // Check distance to edges
-    float distToEdge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
-    
-    // Create organic edge mask with noise-based randomness
-    float edgeNoise = perlinNoise(uv * 8.0 + iTime * 0.3);
-    float organicEdgeThreshold = 0.08 + edgeNoise * 0.04; // Vary edge threshold
-    
-    if (distToEdge < organicEdgeThreshold) {
-        float smoothEdge = 1.0 - smoothstep(0.0, organicEdgeThreshold, distToEdge);
-        // Add noise-based variation to edge strength
-        edge = smoothEdge * (0.7 + edgeNoise * 0.6);
-    }
-    
-    // Add corner effects for more dramatic water distortion
-    vec2 cornerDist = vec2(
-        min(uv.x, 1.0 - uv.x),
-        min(uv.y, 1.0 - uv.y)
-    );
-    float cornerEffect = 1.0 - smoothstep(0.0, 0.15, min(cornerDist.x, cornerDist.y));
-    edge += cornerEffect * 0.3;
-    
-    return clamp(edge, 0.0, 1.0);
-}
 
 void main()
 {
     vec2 texCoord = uv;
-    
-    // Detect edges for stronger water effects
-    float edgeMask = edgeDetection(texCoord);
     
     // Calculate water-like distortion with multiple layers
     vec2 waterDist = waterDistortion(texCoord, iTime);
@@ -123,7 +93,7 @@ void main()
     // Enhanced distortion strength with more pronounced water effects
     float baseDistortion = 0.025;
     float edgeDistortion = 0.045;
-    float distortionStrength = baseDistortion + edgeMask * edgeDistortion;
+    float distortionStrength = baseDistortion ;
     
     // Add time-based variation to distortion strength
     float timeVariation = 0.5 + 0.5 * sin(iTime * 0.7);
@@ -139,21 +109,24 @@ void main()
     vec2 distortedCoord = texCoord + distortion;
     distortedCoord = clamp(distortedCoord, 0.0, 1.0);
     
-    // Sample the distorted texture
-    vec4 color = texture(screenTexture, distortedCoord);
+    // Enhanced multi-sample anti-aliasing for smoother edges
+    vec4 color = vec4(0.0);
+    float sampleCount = 1.0;
+    vec2 sampleOffset = vec2(1.0) / screenSize * 0.5;
     
-    // Enhanced chromatic aberration with water-like dispersion
-    float aberration = 0.005 + edgeMask * 0.008;
-    vec2 aberrationOffset = vec2(aberration, 0.0);
+    // Multi-sample the texture for smoother edges
+    for (float i = 0.0; i < sampleCount; i += 1.0) {
+        float angle = (i / sampleCount) * 6.28318; // 2*PI
+        vec2 offset = vec2(cos(angle), sin(angle)) * sampleOffset;
+        color += texture(screenTexture, distortedCoord + offset);
+    }
+    color /= sampleCount;
     
-    // Add water-like color separation with distortion
-    vec4 r = texture(screenTexture, clamp(distortedCoord + aberrationOffset, 0.0, 1.0));
-    vec4 g = texture(screenTexture, distortedCoord);
-    vec4 b = texture(screenTexture, clamp(distortedCoord - aberrationOffset, 0.0, 1.0));
-    
-    // Mix original color with chromatic aberration
-    vec4 chromaticColor = vec4(r.r, g.g, b.b, color.a);
-    color = mix(color, chromaticColor, 0.7 + edgeMask * 0.4);
+    // Edge smoothing and anti-aliasing
+    vec2 edgeSmoothOffset = vec2(1.0) / screenSize * 0.3;
+    vec4 edgeSmooth = vec4(0.0);
+    float edgeSampleCount = 1.0;
+
     
     // Enhanced water-like caustics effect with multiple layers
     float caustics1 = perlinNoise(texCoord * 8.0 + iTime * 0.6);
@@ -164,29 +137,13 @@ void main()
     caustics2 = smoothstep(0.3, 0.7, caustics2);
     caustics3 = smoothstep(0.4, 0.6, caustics3);
     
-    float totalCaustics = (caustics1 * 0.5 + caustics2 * 0.3 + caustics3 * 0.2);
-    color.rgb += totalCaustics * 0.15 * edgeMask;
+    float totalCaustics = (caustics1 * 0.5);
+    color.rgb += totalCaustics * 0.15 ;
     
     // Add water surface shimmer
     float shimmer = perlinNoise(texCoord * 30.0 + iTime * 2.0);
     shimmer = smoothstep(0.4, 0.6, shimmer);
-    color.rgb += shimmer * 0.08 * edgeMask;
-    
-    // Enhanced vignette with water-like falloff and organic variation
-    float centerDistance = distance(texCoord, vec2(0.5));
-    float vignetteNoise = perlinNoise(texCoord * 4.0 + iTime * 0.2);
-    float organicVignette = centerDistance * (0.8 + vignetteNoise * 0.4);
-    float vignette = 1.0 - organicVignette;
-    vignette = smoothstep(0.0, 1.0, vignette);
-    
-    // Enhanced water-like edge darkening with organic variation
-    float edgeDarkeningNoise = perlinNoise(texCoord * 6.0 + iTime * 0.4);
-    float edgeDarkening = 1.0 - edgeMask * (0.25 + edgeDarkeningNoise * 0.15);
-    
-    // Add water depth effect (darker towards edges)
-    float depthEffect = 1.0 - edgeMask * 0.1;
-    
-    color *= vignette * edgeDarkening * depthEffect;
+    color.rgb += shimmer * 0.08 ;
     
     FragColor = color;
 }
