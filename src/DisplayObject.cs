@@ -21,7 +21,9 @@ namespace maelstrom_poc
         private Point _velocity;
         private Point _targetPosition;
         private readonly Random _random;
-        public Point Position { get { return new Point(_vertices[18 * 4], _vertices[18 * 4 + 1]); } }
+        private readonly Perlin _noise ;
+        private int _activeVertexCount = 19; // Track how many vertices are actually being used
+        public Point Position { get { return new Point(_vertices[0], _vertices[1]); } }
 
 
         public unsafe DisplayObject(GL gl, uint shaderProgram, Point position)
@@ -29,7 +31,8 @@ namespace maelstrom_poc
             _gl = gl;
             _shaderProgram = shaderProgram;
             _random = new Random();
-
+            _noise = new Perlin();
+            
             _targetPosition = position;
             _velocity = Point.Zero;
 
@@ -37,6 +40,7 @@ namespace maelstrom_poc
 
             //vertex and texture coordinates
             _vertices = new float[] {
+                position.X, position.Y,     0.5f, 0.5f,  // Center vertex (index 0)
                 1f, -1f,                    1.0f, 0.0f,
                 1.0f, 0.0f,                 1.0f, 0.5f,
                 1f, 1f,                     1.0f, 1.0f,
@@ -56,18 +60,17 @@ namespace maelstrom_poc
                 -0.8f, -0.8f,               0.1f, 0.1f,
                 0.3f, 0.0f,                 0.65f, 0.5f,
                 0.0f, 0.3f,                 0.5f, 0.65f,
-                position.X, position.Y,     0.5f, 0.5f,
             };
 
             _indices = new uint[] {
                 // Original outer ring triangles to center
-                0,1,18, 1,2,18, 2,3,18, 3,4,18,
-                4,5,18, 5,6,18, 6,7,18, 7,0,18,
+                1,2,0, 2,3,0, 3,4,0, 4,5,0,
+                5,6,0, 6,7,0, 7,8,0, 8,1,0,
                 // Inner ring triangles to center
-                8,9,18, 9,10,18, 10,11,18, 11,8,18,
+                9,10,0, 10,11,0, 11,12,0, 12,9,0,
                 // Additional vertices triangles to center
-                12,13,18, 13,14,18, 14,15,18, 15,12,18,
-                16,17,18
+                13,14,0, 14,15,0, 15,16,0, 16,13,0,
+                17,18,0
             };
 
             // VAO: Binds vertex layout to GPU state machine
@@ -110,7 +113,8 @@ namespace maelstrom_poc
 
         public void Update(float deltaTime)
         {
-            Point newPosition = new(Utils.Lerp(Position.X, _targetPosition.X, (float)deltaTime), Utils.Lerp(Position.Y, _targetPosition.Y, (float)deltaTime));
+            float noise = (float)_noise.Noise(Convert.ToDouble(Position.X), Convert.ToDouble(Position.Y),0.0);
+            Point newPosition = new(Utils.Lerp(Position.X, _targetPosition.X, 0.01f), Utils.Lerp(Position.Y, _targetPosition.Y, 0.01f));
             SetObjectPosition(newPosition.X, newPosition.Y);
 
             // if the distance between the position and the target position is less than 0.01, set the target position to the position
@@ -123,13 +127,13 @@ namespace maelstrom_poc
             if (Vector2D.Distance(Position, _targetPosition) < 0.01)
             {
                 var random = new Random();
-                SetObjectPosition((float)random.NextDouble() * 2 - 1, (float)random.NextDouble() * 2 - 1);
+                _targetPosition = new Point((float)random.NextDouble() * 2 - 1, (float)random.NextDouble() * 2 - 1);
             }
         }
 
         public void SetVertexPosition(int vertexIndex, float x, float y)
         {
-            if (vertexIndex < 0 || vertexIndex >= 18) return;
+            if (vertexIndex < 0 || vertexIndex >= 19) return;
 
             int arrayIndex = vertexIndex * 4;
             _vertices[arrayIndex] = x;
@@ -139,23 +143,23 @@ namespace maelstrom_poc
         public void SetVertexPositions(List<Point> positions)
         {
             int nbToAssign = Math.Min(positions.Count, 18);
+            _activeVertexCount = nbToAssign + 1; // +1 for the center vertex (index 0)
 
             for (int i = 0; i < nbToAssign; i++)
             {
-                SetVertexPosition(i, positions[i].X, positions[i].Y);
+                SetVertexPosition(i + 1, positions[i].X, positions[i].Y); // Start from index 1 since 0 is center
             }
             for (int i = nbToAssign; i < 18; i++)
             {
-                SetVertexPosition(i, positions[0].X, positions[0].Y);
+                SetVertexPosition(i + 1, positions[0].X, positions[0].Y); // Start from index 1 since 0 is center
             }
         }
 
         public void SetObjectPosition(float x, float y)
         {
-            //the end vertex is the center
-            int arrayIndex = 18 * 4;
-            _vertices[arrayIndex] = x;
-            _vertices[arrayIndex + 1] = y;
+            //the first vertex is the center
+            _vertices[0] = x;
+            _vertices[1] = y;
         }
 
         public void moveTo(float x, float y)
@@ -201,7 +205,10 @@ namespace maelstrom_poc
             _gl.Uniform1(_timeUniformLocation, time);
 
             // DrawElements: Triggers GPU to process vertices and render triangles
-            _gl.DrawElements(PrimitiveType.Triangles, 33, DrawElementsType.UnsignedInt, (void*)0);
+            // Calculate number of triangles based on active vertices (excluding center vertex)
+            int activeVertices = _activeVertexCount - 1; // Exclude center vertex
+            int triangleCount = activeVertices * 2; // Each vertex connects to center, forming triangles
+            _gl.DrawElements(GLEnum.Triangles, (uint)(triangleCount * 3), GLEnum.UnsignedInt, (void*)0);
         }
 
         public void Dispose()

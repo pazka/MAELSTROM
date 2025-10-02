@@ -15,7 +15,7 @@ namespace maelstrom_poc
         private static Renderer _renderer;
         private static ShaderManager _shaderManager;
         private static uint _causticShader;
-        private static Vector2D<int> _screenSize = new(1080, 720);
+        private static Vector2D<int> _screenSize = new(1920, 1080);
         private static IInputContext _inputContext;
         private static Point _mousePosition = new(0, 0);
 
@@ -47,8 +47,6 @@ namespace maelstrom_poc
             // Initialize OpenGL
             _gl = _window.CreateOpenGL();
             _gl.ClearColor(Color.Black);
-            _gl.Enable(EnableCap.Blend);
-            _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.SrcAlpha);
 
             // Initialize managers
             _shaderManager = new ShaderManager(_gl);
@@ -75,7 +73,7 @@ namespace maelstrom_poc
 
         private static void InitializeObjects()
         {
-            int objectNb = 50;
+            int objectNb = 100;
             var random = new Random();
             for (int i = 0; i < objectNb; i++)
             {
