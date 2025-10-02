@@ -11,11 +11,13 @@ namespace maelstrom_poc
     public static class Voronoi
     {
         private static List<DisplayObject> _displayObjects;
+        private static float _screenBounds = 1.1f; // Default bounds with 10% margin
 
-        public static void InitVoronoi(List<DisplayObject> displayObjects)
+        public static void InitVoronoi(List<DisplayObject> displayObjects, float screenBounds = 1.1f)
         {
             VoronoiTests.Test();
             _displayObjects = displayObjects;
+            _screenBounds = screenBounds;
         }
 
         public static void ComputeVoronoi(float time = 0.0f)
@@ -31,19 +33,19 @@ namespace maelstrom_poc
         {
             Point currentCenter = displayObject.Position;
 
-            // Start woth the screen as the first vertices, knwoing we have 8 vertices (center is 0.0f, 0.0f)
+            // Start with the screen bounds as the first vertices, knowing we have 8 vertices (center is 0.0f, 0.0f)
             Point[] currentVertices = new Point[] {
-                new(1f, -1f),
-                new(1.0f, 0.0f),
-                new(1f, 1f),
-                new(0.0f, 1.0f),
-                new(-1f, 1f),
-                new(-1.0f, 0.0f),
-                new(-1f, -1f),
-                new(0.0f, -1.0f),
+                new(_screenBounds, -_screenBounds),
+                new(_screenBounds, 0.0f),
+                new(_screenBounds, _screenBounds),
+                new(0.0f, _screenBounds),
+                new(-_screenBounds, _screenBounds),
+                new(-_screenBounds, 0.0f),
+                new(-_screenBounds, -_screenBounds),
+                new(0.0f, -_screenBounds),
             };
 
-            List<DisplayObject> closestObjects = _displayObjects.Where(o => Vector2D.Distance(o.Position, currentCenter) < 0.3f).ToList();
+            List<DisplayObject> closestObjects = _displayObjects.Where(o => Vector2D.Distance(o.Position, currentCenter) < _screenBounds * 0.3f).ToList();
 
             // Process each other object
             foreach (var otherObject in _displayObjects)

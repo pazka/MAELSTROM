@@ -20,7 +20,7 @@ void main()
     }
     
     // Create gradient border effect
-    float borderWidth = 0.08;
+    float borderWidth = 0.2;
     float distanceToEdge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
     float borderGradient = smoothstep(0.0, borderWidth, distanceToEdge);
     

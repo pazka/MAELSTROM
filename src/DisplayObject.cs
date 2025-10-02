@@ -21,8 +21,11 @@ namespace maelstrom_poc
         private Point _velocity;
         private Point _targetPosition;
         private readonly Random _random;
-        private readonly Perlin _noise ;
+        private readonly Perlin _noise;
         private int _activeVertexCount = 19; // Track how many vertices are actually being used
+        private float _speed;
+        private Point _direction;
+        private static readonly float ScreenMargin = 0.1f; // 10% margin for screen boundaries
         public Point Position { get { return new Point(_vertices[0], _vertices[1]); } }
 
 
@@ -35,6 +38,10 @@ namespace maelstrom_poc
             
             _targetPosition = position;
             _velocity = Point.Zero;
+            
+            // Initialize diagonal movement with random speed
+            _speed = (float)(_random.NextDouble() * 0.05 + 0.1); // Speed between 0.1 and 0.6
+            InitializeRandomDirection();
 
             _timeUniformLocation = _gl.GetUniformLocation(_shaderProgram, "iTime");
 
@@ -113,22 +120,13 @@ namespace maelstrom_poc
 
         public void Update(float deltaTime)
         {
-            float noise = (float)_noise.Noise(Convert.ToDouble(Position.X), Convert.ToDouble(Position.Y),0.0);
-            Point newPosition = new(Utils.Lerp(Position.X, _targetPosition.X, 0.01f), Utils.Lerp(Position.Y, _targetPosition.Y, 0.01f));
+            // Move diagonally with constant speed
+            Point newPosition = Position + _direction * _speed * deltaTime;
+            
+            // Check screen boundaries and handle wrapping
+            newPosition = HandleScreenBoundaries(newPosition);
+            
             SetObjectPosition(newPosition.X, newPosition.Y);
-
-            // if the distance between the position and the target position is less than 0.01, set the target position to the position
-            if (Vector2D.Distance(Position, _targetPosition) < 0.01)
-            {
-                _targetPosition = Position;
-            }
-
-            // if the distance between the position and the target position is less than 0.01, set the target position to the position
-            if (Vector2D.Distance(Position, _targetPosition) < 0.01)
-            {
-                var random = new Random();
-                _targetPosition = new Point((float)random.NextDouble() * 2 - 1, (float)random.NextDouble() * 2 - 1);
-            }
         }
 
         public void SetVertexPosition(int vertexIndex, float x, float y)
@@ -209,6 +207,44 @@ namespace maelstrom_poc
             int activeVertices = _activeVertexCount - 1; // Exclude center vertex
             int triangleCount = activeVertices * 2; // Each vertex connects to center, forming triangles
             _gl.DrawElements(GLEnum.Triangles, (uint)(triangleCount * 3), GLEnum.UnsignedInt, (void*)0);
+        }
+
+        private void InitializeRandomDirection()
+        {
+            // Generate random diagonal direction
+            float angle = (float)(_random.NextDouble() * Math.PI * 2);
+            _direction = new Point((float)Math.Cos(angle), (float)Math.Sin(angle));
+        }
+
+        private Point HandleScreenBoundaries(Point position)
+        {
+            float screenMin = -1.0f - ScreenMargin;
+            float screenMax = 1.0f + ScreenMargin;
+            
+            // Check if object has moved beyond screen boundaries
+            if (position.X < screenMin)
+            {
+                // Wrap to opposite side with margin
+                position = new Point(screenMax - ScreenMargin * 0.5f, position.Y);
+            }
+            else if (position.X > screenMax)
+            {
+                // Wrap to opposite side with margin
+                position = new Point(screenMin + ScreenMargin * 0.5f, position.Y);
+            }
+            
+            if (position.Y < screenMin)
+            {
+                // Wrap to opposite side with margin
+                position = new Point(position.X, screenMax - ScreenMargin * 0.5f);
+            }
+            else if (position.Y > screenMax)
+            {
+                // Wrap to opposite side with margin
+                position = new Point(position.X, screenMin + ScreenMargin * 0.5f);
+            }
+            
+            return position;
         }
 
         public void Dispose()

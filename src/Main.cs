@@ -82,7 +82,7 @@ namespace maelstrom_poc
                 _renderer.AddObject(shaderObject);
             }
 
-            Voronoi.InitVoronoi(_renderer.Objects.ToList());
+            Voronoi.InitVoronoi(_renderer.Objects.ToList(), 1.1f); // 10% margin for screen bounds
             Voronoi.ComputeVoronoi();
         }
 
