@@ -11,6 +11,7 @@ void main()
     // Create rounded rectangle mask
     float cornerRadius = 0.15;
     float roundedMask = 1.0;
+
     
     // Check distance to corners for rounding
     vec2 cornerDist = abs(centeredUV) - (0.5 - cornerRadius);
@@ -35,6 +36,13 @@ void main()
     
     // Apply rounded corners using alpha
     float alpha = roundedMask * (1.0 - borderGradient * 0.3); // Slight transparency for border
+
+    //display white center circle 
+    float centerCircle = smoothstep(0.0, 0.1, d);
+    finalColor = mix(finalColor, vec3(1.0), centerCircle);
+
+    //mix border and center
+    finalColor = mix(finalColor, vec3(0), borderGradient);
 
     FragColor = vec4(finalColor, alpha);
 }

@@ -23,10 +23,10 @@ namespace maelstrom_poc
         // Fullscreen quad vertices (position + texture coordinates)
         private readonly float[] _quadVertices = {
             // positions   // texCoords
-            -1.0f,  1.0f,  0.0f, 1.0f,
-            -1.0f, -1.0f,  0.0f, 0.0f,
-             1.0f, -1.0f,  1.0f, 0.0f,
-             1.0f,  1.0f,  1.0f, 1.0f
+            -1.0f,  1.0f,  0.0f, 1.0f,  // top-left
+            -1.0f, -1.0f,  0.0f, 0.0f,  // bottom-left
+             1.0f, -1.0f,  1.0f, 0.0f,  // bottom-right
+             1.0f,  1.0f,  1.0f, 1.0f   // top-right
         };
 
         private readonly uint[] _quadIndices = {
@@ -145,6 +145,9 @@ namespace maelstrom_poc
             _gl.Viewport(0, 0, (uint)_screenSize.X, (uint)_screenSize.Y);
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
+            // Disable depth testing for post-processing
+            _gl.Disable(EnableCap.DepthTest);
+
             // Use post-processing shader
             _gl.UseProgram(_postProcessShader);
 
@@ -164,6 +167,9 @@ namespace maelstrom_poc
                 _gl.DrawElements(GLEnum.Triangles, 6, GLEnum.UnsignedInt, (void*)0);
             }
             _gl.BindVertexArray(0);
+
+            // Re-enable depth testing
+            _gl.Enable(EnableCap.DepthTest);
         }
 
         /// <summary>

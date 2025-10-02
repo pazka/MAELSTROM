@@ -79,7 +79,7 @@ namespace maelstrom_poc
 
         private static void InitializeObjects()
         {
-            int objectNb = 100;
+            int objectNb = 3;
             var random = new Random();
             for (int i = 0; i < objectNb; i++)
             {
@@ -102,13 +102,13 @@ namespace maelstrom_poc
         private static void OnRender(double deltaTime)
         {
             // Begin rendering to framebuffer
-            _postProcessor.BeginRender();
+            //_postProcessor.BeginRender();
             
-            // Render the scene
-            _renderer.Render();
+            // Render the scene to framebuffer (don't clear screen)
+            _renderer.Render(false);
             
             // End rendering and apply post-processing
-            _postProcessor.EndRender(_renderer.GetTime());
+            //_postProcessor.EndRender(_renderer.GetTime());
 
             // Update FPS counter
             _frameCount++;
@@ -147,7 +147,7 @@ namespace maelstrom_poc
             _gl.Viewport(0, 0, (uint)_screenSize.X, (uint)_screenSize.Y);
             
             // Update post-processor with new screen size
-            _postProcessor?.UpdateScreenSize(_screenSize);
+            //_postProcessor?.UpdateScreenSize(_screenSize);
         }
 
         private static void OnClosing()

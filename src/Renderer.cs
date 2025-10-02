@@ -52,10 +52,13 @@ namespace maelstrom_poc
         /// <summary>
         /// Render all shader objects
         /// </summary>
-        public void Render()
+        public void Render(bool clearScreen = true)
         {
-            // Clear the screen
-            _gl.Clear(ClearBufferMask.ColorBufferBit);
+            // Clear the screen only if requested (not when rendering to framebuffer)
+            if (clearScreen)
+            {
+                _gl.Clear(ClearBufferMask.ColorBufferBit);
+            }
 
             // Render each object
             foreach (var obj in _objects)

@@ -25,7 +25,6 @@ namespace maelstrom_poc
         private int _activeVertexCount = 19; // Track how many vertices are actually being used
         private float _speed;
         private Point _direction;
-        private static readonly float ScreenMargin = 0.1f; // 10% margin for screen boundaries
         public Point Position { get { return new Point(_vertices[0], _vertices[1]); } }
 
 
@@ -40,7 +39,7 @@ namespace maelstrom_poc
             _velocity = Point.Zero;
             
             // Initialize diagonal movement with random speed
-            _speed = (float)(_random.NextDouble() * 0.05 + 0.1); // Speed between 0.1 and 0.6
+            _speed = (float)(_random.NextDouble() * 0.05 + 0.1) ; // Speed between 0.1 and 0.6
             InitializeRandomDirection();
 
             _timeUniformLocation = _gl.GetUniformLocation(_shaderProgram, "iTime");
@@ -218,33 +217,62 @@ namespace maelstrom_poc
 
         private Point HandleScreenBoundaries(Point position)
         {
-            float screenMin = -1.0f - ScreenMargin;
-            float screenMax = 1.0f + ScreenMargin;
+            float screenMin = -1.0f;
+            float screenMax = 1.0f;
             
-            // Check if object has moved beyond screen boundaries
+            // Check if object has moved beyond screen boundaries and bounce
             if (position.X < screenMin)
             {
-                // Wrap to opposite side with margin
-                position = new Point(screenMax - ScreenMargin * 0.5f, position.Y);
+                // Bounce off left boundary
+                position = new Point(screenMin, position.Y);
+                _direction = new Point(-_direction.X, _direction.Y); // Reverse X direction
+                // Add small random variation to prevent corner trapping
+                AddRandomVariation();
             }
             else if (position.X > screenMax)
             {
-                // Wrap to opposite side with margin
-                position = new Point(screenMin + ScreenMargin * 0.5f, position.Y);
+                // Bounce off right boundary
+                position = new Point(screenMax, position.Y);
+                _direction = new Point(-_direction.X, _direction.Y); // Reverse X direction
+                // Add small random variation to prevent corner trapping
+                AddRandomVariation();
             }
             
             if (position.Y < screenMin)
             {
-                // Wrap to opposite side with margin
-                position = new Point(position.X, screenMax - ScreenMargin * 0.5f);
+                // Bounce off bottom boundary
+                position = new Point(position.X, screenMin);
+                _direction = new Point(_direction.X, -_direction.Y); // Reverse Y direction
+                // Add small random variation to prevent corner trapping
+                AddRandomVariation();
             }
             else if (position.Y > screenMax)
             {
-                // Wrap to opposite side with margin
-                position = new Point(position.X, screenMin + ScreenMargin * 0.5f);
+                // Bounce off top boundary
+                position = new Point(position.X, screenMax);
+                _direction = new Point(_direction.X, -_direction.Y); // Reverse Y direction
+                // Add small random variation to prevent corner trapping
+                AddRandomVariation();
             }
             
             return position;
+        }
+
+        private void AddRandomVariation()
+        {
+            // Add small random variation to direction to prevent corner trapping
+            float variation = 0.1f;
+            float randomX = (float)(_random.NextDouble() * variation * 2 - variation);
+            float randomY = (float)(_random.NextDouble() * variation * 2 - variation);
+            
+            _direction = new Point(_direction.X + randomX, _direction.Y + randomY);
+            
+            // Normalize to maintain speed
+            float length = (float)Math.Sqrt(_direction.X * _direction.X + _direction.Y * _direction.Y);
+            if (length > 0.001f) // Avoid division by zero
+            {
+                _direction = new Point(_direction.X / length, _direction.Y / length);
+            }
         }
 
         public void Dispose()
