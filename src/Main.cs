@@ -17,7 +17,7 @@ namespace maelstrom_poc
         private static uint _causticShader;
         private static uint _postProcessShader;
         private static PostProcessor _postProcessor;
-        private static Vector2D<int> _screenSize = new(1920, 1080);
+        private static Vector2D<int> _screenSize = new(1280, 720);
         private static IInputContext _inputContext;
         private static Point _mousePosition = new(0, 0);
 
@@ -102,13 +102,13 @@ namespace maelstrom_poc
         private static void OnRender(double deltaTime)
         {
             // Begin rendering to framebuffer
-        //    _postProcessor.BeginRender();
+            //_postProcessor.BeginRender();
             
             // Render the scene to framebuffer (don't clear screen)
             _renderer.Render(false);
             
             // End rendering and apply post-processing
-       //    _postProcessor.EndRender(_renderer.GetTime());
+           // _postProcessor.EndRender(_renderer.GetTime());
 
             // Update FPS counter
             _frameCount++;

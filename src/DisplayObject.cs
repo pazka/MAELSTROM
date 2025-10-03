@@ -39,7 +39,7 @@ namespace maelstrom_poc
             _velocity = Point.Zero;
             
             // Initialize diagonal movement with random speed
-            _speed = (float)(_random.NextDouble() * 0.05 + 0.1) ; // Speed between 0.1 and 0.6
+            _speed = (float)(_random.NextDouble() * 0.05 + 0.01) ; // Speed between 0.1 and 0.6
             InitializeRandomDirection();
 
             _timeUniformLocation = _gl.GetUniformLocation(_shaderProgram, "iTime");
