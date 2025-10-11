@@ -1,7 +1,7 @@
 using Silk.NET.OpenGL;
 using Silk.NET.Maths;
 
-namespace maelstrom_poc
+namespace Maelstrom.Phishing
 {
     /// <summary>
     /// Manages and renders multiple ShaderObjects

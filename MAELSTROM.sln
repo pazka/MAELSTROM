@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "src", "src.csproj", "{82FD2E6D-FBC2-6F14-DD77-CCEE33A00CED}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "corals", "corals.csproj", "{6D776255-A758-89DC-A6B2-215CBA6EECFC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -10,15 +10,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{82FD2E6D-FBC2-6F14-DD77-CCEE33A00CED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{82FD2E6D-FBC2-6F14-DD77-CCEE33A00CED}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{82FD2E6D-FBC2-6F14-DD77-CCEE33A00CED}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{82FD2E6D-FBC2-6F14-DD77-CCEE33A00CED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D776255-A758-89DC-A6B2-215CBA6EECFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D776255-A758-89DC-A6B2-215CBA6EECFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D776255-A758-89DC-A6B2-215CBA6EECFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D776255-A758-89DC-A6B2-215CBA6EECFC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {38EEC5EB-1423-4A5A-B6B8-49BEBA850432}
+		SolutionGuid = {77D5826D-0E4C-4BE5-9EAA-4B1446116820}
 	EndGlobalSection
 EndGlobal

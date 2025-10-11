@@ -3,11 +3,11 @@ using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using System.Drawing;
-using System.Runtime.CompilerServices;
 
-namespace maelstrom_poc
+namespace Maelstrom.Phishing
 {
     using Point = Vector2D<float>;
+
     public class Program
     {
         private static IWindow _window;
@@ -31,7 +31,7 @@ namespace maelstrom_poc
             WindowOptions options = WindowOptions.Default with
             {
                 Size = _screenSize,
-                Title = "MAELSTROM !"
+                Title = "MAELSTROM ! - Corals"
             };
 
             _window = Window.Create(options);
@@ -58,9 +58,6 @@ namespace maelstrom_poc
             _causticShader = _shaderManager.LoadShader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
             _postProcessShader = _shaderManager.LoadShader("assets/shaders/postprocess_vertex.vert", "assets/shaders/postprocess_fragment.frag");
 
-            // Create some shader objects at different positions
-            InitializeObjects();
-
             // Initialize post-processor
             _postProcessor = new PostProcessor(_gl, _postProcessShader, _screenSize);
 
@@ -75,41 +72,21 @@ namespace maelstrom_poc
             {
                 _inputContext.Mice[i].MouseMove += OnMouseMove;
             }
-        }
 
-        private static void InitializeObjects()
-        {
-            int objectNb = 3;
-            var random = new Random();
-            for (int i = 0; i < objectNb; i++)
-            {
-                var randomPosition = new Point((float)random.NextDouble() * 2 - 1, (float)random.NextDouble() * 2 - 1);
-                var shaderObject = new DisplayObject(_gl, _causticShader, randomPosition);
-                _renderer.AddObject(shaderObject);
-            }
-
-            Voronoi.InitVoronoi(_renderer.Objects.ToList(), 1.1f); // 10% margin for screen bounds
-            Voronoi.ComputeVoronoi();
+            DisplayObject obj = new DisplayObject(_gl, _causticShader, new Point(0.5f, 0.5f));
+            _renderer.AddObject(obj);
         }
 
         private static void OnUpdate(double deltaTime)
         {
             // Update object position to follow mouse
             _renderer.Update(deltaTime);
-            Voronoi.ComputeVoronoi(_renderer.GetTime());
         }
 
         private static void OnRender(double deltaTime)
         {
-            // Begin rendering to framebuffer
-            //_postProcessor.BeginRender();
-            
             // Render the scene to framebuffer (don't clear screen)
             _renderer.Render(false);
-            
-            // End rendering and apply post-processing
-            //_postProcessor.EndRender(_renderer.GetTime());
-
             // Update FPS counter
             _frameCount++;
             _fpsTimer += deltaTime;
@@ -145,7 +122,7 @@ namespace maelstrom_poc
             _screenSize = size;
             _window.Size = _screenSize;
             _gl.Viewport(0, 0, (uint)_screenSize.X, (uint)_screenSize.Y);
-            
+
             // Update post-processor with new screen size
             //_postProcessor?.UpdateScreenSize(_screenSize);
         }

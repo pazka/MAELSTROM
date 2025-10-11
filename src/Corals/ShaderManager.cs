@@ -1,6 +1,6 @@
 using Silk.NET.OpenGL;
 
-namespace maelstrom_poc
+namespace Maelstrom.Corals
 {
     /// <summary>
     /// Manages shader compilation and loading
