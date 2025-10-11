@@ -6,7 +6,7 @@ uniform float iTime;
 void main()
 {
     float limit = 0.01;
-    float d = distance(uv, vec2(0, 0));
+    float d = distance(uv, vec2(.5, .5));
     
     // Check if we're near the edge of the fragment (uv coordinates from 0 to 1)
     float edgeThreshold = 0.02;

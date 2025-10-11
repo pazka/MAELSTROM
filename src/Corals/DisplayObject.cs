@@ -1,7 +1,7 @@
 using Silk.NET.OpenGL;
 using Silk.NET.Maths;
 
-namespace maelstrom_poc
+namespace Maelstrom.Corals
 {
     using Point = Vector2D<float>;
     /// <summary>
@@ -21,7 +21,6 @@ namespace maelstrom_poc
         private Point _velocity;
         private Point _targetPosition;
         private readonly Random _random;
-        private readonly Perlin _noise;
         private int _activeVertexCount = 19; // Track how many vertices are actually being used
         private float _speed;
         private Point _direction;
@@ -33,7 +32,6 @@ namespace maelstrom_poc
             _gl = gl;
             _shaderProgram = shaderProgram;
             _random = new Random();
-            _noise = new Perlin();
             
             _targetPosition = position;
             _velocity = Point.Zero;
@@ -54,7 +52,8 @@ namespace maelstrom_poc
                 -1f, 1f,                    0.0f, 1.0f,
                 -1.0f, 0.0f,                0.0f, 0.5f,
                 -1f, -1f,                   0.0f, 0.0f,
-                0.0f, -1.0f,                0.5f, 0.0f,
+                0.0f, -1.0f,                0.5f, 0.0f, 
+                 
                 // Additional 10 vertices
                 0.5f, -0.5f,                0.75f, 0.25f,
                 0.5f, 0.5f,                 0.75f, 0.75f,

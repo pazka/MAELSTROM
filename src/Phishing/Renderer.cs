@@ -1,38 +1,38 @@
 using Silk.NET.OpenGL;
 using Silk.NET.Maths;
 
-namespace maelstrom_poc
+namespace Maelstrom.Phishing
 {
     /// <summary>
-    /// Manages and renders multiple ShaderObjects
+    /// Manages and renders multiple DataObjects
     /// </summary>
     public class Renderer
     {
         private readonly GL _gl;
-        private readonly List<DisplayObject> _objects;
+        private readonly List<DataObject> _objects;
         private float _time;
 
         public Renderer(GL gl)
         {
             _gl = gl;
-            _objects = new List<DisplayObject>();
+            _objects = new List<DataObject>();
             _time = 0.0f;
         }
 
         /// <summary>
-        /// Add a shader object to the renderer
+        /// Add a data object to the renderer
         /// </summary>
-        public void AddObject(DisplayObject shaderObject)
+        public void AddObject(DataObject dataObject)
         {
-            _objects.Add(shaderObject);
+            _objects.Add(dataObject);
         }
 
         /// <summary>
-        /// Remove a shader object from the renderer
+        /// Remove a data object from the renderer
         /// </summary>
-        public void RemoveObject(DisplayObject shaderObject)
+        public void RemoveObject(DataObject dataObject)
         {
-            _objects.Remove(shaderObject);
+            _objects.Remove(dataObject);
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace maelstrom_poc
         {
             _time += (float)deltaTime;
 
-            // Update all objects for movement
+            // Update all data objects
             foreach (var obj in _objects)
             {
                 obj.Update((float)deltaTime);
@@ -50,7 +50,7 @@ namespace maelstrom_poc
         }
 
         /// <summary>
-        /// Render all shader objects
+        /// Render all data objects
         /// </summary>
         public void Render(bool clearScreen = true)
         {
@@ -60,17 +60,17 @@ namespace maelstrom_poc
                 _gl.Clear(ClearBufferMask.ColorBufferBit);
             }
 
-            // Render each object
+            // Render each object's display object
             foreach (var obj in _objects)
             {
-                obj.Render(_time);
+                obj.DisplayObject.Render(_time);
             }
         }
 
         /// <summary>
         /// Get all objects (for manipulation)
         /// </summary>
-        public IReadOnlyList<DisplayObject> Objects => _objects.AsReadOnly();
+        public IReadOnlyList<DataObject> Objects => _objects.AsReadOnly();
 
         /// <summary>
         /// Get current time
@@ -84,7 +84,7 @@ namespace maelstrom_poc
         {
             foreach (var obj in _objects)
             {
-                obj.Dispose();
+                obj.DisplayObject.Dispose();
             }
             _objects.Clear();
         }

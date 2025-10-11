@@ -3,23 +3,21 @@ using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using System.Drawing;
-using System.Runtime.CompilerServices;
 
-namespace maelstrom_poc
+namespace Maelstrom.Phishing
 {
     using Point = Vector2D<float>;
+
     public class Program
     {
         private static IWindow _window;
         private static GL _gl;
         private static Renderer _renderer;
         private static ShaderManager _shaderManager;
-        private static uint _causticShader;
-        private static uint _postProcessShader;
-        private static PostProcessor _postProcessor;
         private static Vector2D<int> _screenSize = new(1920, 1080);
         private static IInputContext _inputContext;
         private static Point _mousePosition = new(0, 0);
+        private static List<DataObject> _phishingObjects;
 
         // FPS tracking
         private static int _frameCount = 0;
@@ -31,7 +29,7 @@ namespace maelstrom_poc
             WindowOptions options = WindowOptions.Default with
             {
                 Size = _screenSize,
-                Title = "MAELSTROM !"
+                Title = "MAELSTROM ! - Phishing"
             };
 
             _window = Window.Create(options);
@@ -53,16 +51,10 @@ namespace maelstrom_poc
             // Initialize managers
             _shaderManager = new ShaderManager(_gl);
             _renderer = new Renderer(_gl);
+            _phishingObjects = new List<DataObject>();
 
             // Load shaders
-            _causticShader = _shaderManager.LoadShader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
-            _postProcessShader = _shaderManager.LoadShader("assets/shaders/postprocess_vertex.vert", "assets/shaders/postprocess_fragment.frag");
-
-            // Create some shader objects at different positions
-            InitializeObjects();
-
-            // Initialize post-processor
-            _postProcessor = new PostProcessor(_gl, _postProcessShader, _screenSize);
+            _shaderManager.LoadShader("default", "assets/shaders/default.vert", "assets/shaders/default.frag");
 
             // Set up input
             _inputContext = _window.CreateInput();
@@ -75,41 +67,21 @@ namespace maelstrom_poc
             {
                 _inputContext.Mice[i].MouseMove += OnMouseMove;
             }
-        }
 
-        private static void InitializeObjects()
-        {
-            int objectNb = 3;
-            var random = new Random();
-            for (int i = 0; i < objectNb; i++)
-            {
-                var randomPosition = new Point((float)random.NextDouble() * 2 - 1, (float)random.NextDouble() * 2 - 1);
-                var shaderObject = new DisplayObject(_gl, _causticShader, randomPosition);
-                _renderer.AddObject(shaderObject);
-            }
-
-            Voronoi.InitVoronoi(_renderer.Objects.ToList(), 1.1f); // 10% margin for screen bounds
-            Voronoi.ComputeVoronoi();
+            // Spawn 5 phishing objects with random positions and velocities
+            SpawnPhishingObjects();
         }
 
         private static void OnUpdate(double deltaTime)
         {
             // Update object position to follow mouse
             _renderer.Update(deltaTime);
-            Voronoi.ComputeVoronoi(_renderer.GetTime());
         }
 
         private static void OnRender(double deltaTime)
         {
-            // Begin rendering to framebuffer
-            //_postProcessor.BeginRender();
-            
             // Render the scene to framebuffer (don't clear screen)
             _renderer.Render(false);
-            
-            // End rendering and apply post-processing
-            //_postProcessor.EndRender(_renderer.GetTime());
-
             // Update FPS counter
             _frameCount++;
             _fpsTimer += deltaTime;
@@ -117,7 +89,7 @@ namespace maelstrom_poc
             if (_fpsTimer >= _fpsUpdateInterval)
             {
                 double fps = _frameCount / _fpsTimer;
-                _window.Title = $"MAELSTROM ! - FPS: {fps:F1}";
+                _window.Title = $"MAELSTROM ! - Phishing - FPS: {fps:F1}";
 
                 // Reset counters
                 _frameCount = 0;
@@ -145,16 +117,42 @@ namespace maelstrom_poc
             _screenSize = size;
             _window.Size = _screenSize;
             _gl.Viewport(0, 0, (uint)_screenSize.X, (uint)_screenSize.Y);
-            
-            // Update post-processor with new screen size
-            //_postProcessor?.UpdateScreenSize(_screenSize);
         }
 
         private static void OnClosing()
         {
-            _postProcessor?.Dispose();
             _renderer?.Dispose();
             _shaderManager?.Dispose();
+        }
+
+        private static void SpawnPhishingObjects()
+        {
+            Random random = new Random();
+
+            for (int i = 0; i < 1; i++)
+            {
+                // Random starting position
+                Point startPos = new Point(
+                    random.Next(50, _screenSize.X - 50),
+                    random.Next(50, _screenSize.Y - 50)
+                );
+
+                // Random velocity (pixels per second)
+                Point velocity = new Point(
+                    (float)(random.NextDouble() - 0.5) * 200, // -100 to 100 px/s
+                    (float)(random.NextDouble() - 0.5) * 200
+                );
+
+                // Create display object
+                DisplayObject displayObj = new DisplayObject(_gl, _shaderManager.getShaderProgram("default"), startPos);
+
+                // Create data object
+                DataObject dataObj = new DataObject(displayObj, startPos, velocity, _screenSize);
+
+                // Add to collections
+                _phishingObjects.Add(dataObj);
+                _renderer.AddObject(dataObj);
+            }
         }
     }
 }

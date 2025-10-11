@@ -1,6 +1,6 @@
 using Silk.NET.Maths;
 
-namespace maelstrom_poc
+namespace Maelstrom
 {
     using Point = Vector2D<float>;
 

@@ -1,7 +1,7 @@
 using Silk.NET.OpenGL;
 using Silk.NET.Maths;
 
-namespace maelstrom_poc
+namespace Maelstrom.Corals
 {
     /// <summary>
     /// Handles post-processing effects using framebuffers

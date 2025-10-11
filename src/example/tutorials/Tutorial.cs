@@ -17,7 +17,7 @@ public class Program
     private static uint _ebo;
     private static uint _program;
     private static uint _texture;
-    public static void __Main(string[] args)
+    public static void Main(string[] args)
     {
 
         WindowOptions options = WindowOptions.Default with

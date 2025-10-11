@@ -1,6 +1,6 @@
 using Silk.NET.OpenGL;
 
-namespace maelstrom_poc
+namespace Maelstrom.Phishing
 {
     /// <summary>
     /// Manages shader compilation and loading
@@ -19,10 +19,8 @@ namespace maelstrom_poc
         /// <summary>
         /// Load and compile a shader from files
         /// </summary>
-        public uint LoadShader(string vertexPath, string fragmentPath)
+        public uint LoadShader(string key, string vertexPath, string fragmentPath)
         {
-            string key = $"{vertexPath}:{fragmentPath}";
-
             if (_shaderCache.TryGetValue(key, out uint cachedShader))
             {
                 return cachedShader;
@@ -35,6 +33,11 @@ namespace maelstrom_poc
             _shaderCache[key] = shaderProgram;
 
             return shaderProgram;
+        }
+
+        public uint getShaderProgram(string key)
+        {
+            return _shaderCache[key];
         }
 
         /// <summary>
