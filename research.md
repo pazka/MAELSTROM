@@ -17,3 +17,6 @@ https://dotnet.github.io/Silk.NET/docs/opengl/
 
 https://en.wikipedia.org/wiki/Voronoi_diagram
 https://www.youtube.com/watch?v=0tKyue60EWM
+
+https://www.shadertoy.com/view/XttyRX
+https://www.shadertoy.com/view/wlc3zr

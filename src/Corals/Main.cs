@@ -15,9 +15,6 @@ namespace Maelstrom.Corals
         private static GL _gl;
         private static Renderer _renderer;
         private static ShaderManager _shaderManager;
-        private static uint _causticShader;
-        private static uint _postProcessShader;
-        private static PostProcessor _postProcessor;
         private static Vector2D<int> _screenSize = new(1920, 1080);
         private static IInputContext _inputContext;
         private static Point _mousePosition = new(0, 0);
@@ -47,25 +44,16 @@ namespace Maelstrom.Corals
 
         private static void OnLoad()
         {
-            // Initialize OpenGL
             _gl = _window.CreateOpenGL();
+            _gl.BlendFunc(BlendingFactor.OneMinusDstColor, BlendingFactor.DstColor);
+            _gl.Enable(GLEnum.Blend);
             _gl.ClearColor(Color.Black);
 
-            // Initialize managers
             _shaderManager = new ShaderManager(_gl);
             _renderer = new Renderer(_gl);
 
-            // Load shaders
-            _causticShader = _shaderManager.LoadShader("coral", "assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
-            _postProcessShader = _shaderManager.LoadShader("coral", "assets/shaders/postprocess_vertex.vert", "assets/shaders/postprocess_fragment.frag");
+            _shaderManager.LoadShader("coral", "assets/shaders/corals.vert", "assets/shaders/corals.frag");
 
-            // Create some shader objects at different positions
-
-
-            // Initialize post-processor
-            _postProcessor = new PostProcessor(_gl, _postProcessShader, _screenSize);
-
-            // Set up input
             _inputContext = _window.CreateInput();
             for (int i = 0; i < _inputContext.Keyboards.Count; i++)
             {
@@ -76,19 +64,20 @@ namespace Maelstrom.Corals
             {
                 _inputContext.Mice[i].MouseMove += OnMouseMove;
             }
+
+            _renderer.AddObject(new DisplayObject(_gl, _shaderManager.getShaderProgram("coral"), _screenSize));
+            _renderer.AddObject(new DisplayObject(_gl, _shaderManager.getShaderProgram("coral"), _screenSize));
+            _renderer.AddObject(new DisplayObject(_gl, _shaderManager.getShaderProgram("coral"), _screenSize));
         }
 
         private static void OnUpdate(double deltaTime)
         {
-            // Update object position to follow mouse
             _renderer.Update(deltaTime);
         }
 
         private static void OnRender(double deltaTime)
         {
-            // Render the scene to framebuffer (don't clear screen)
             _renderer.Render(false);
-            // Update FPS counter
             _frameCount++;
             _fpsTimer += deltaTime;
 
@@ -97,7 +86,6 @@ namespace Maelstrom.Corals
                 double fps = _frameCount / _fpsTimer;
                 _window.Title = $"MAELSTROM ! - FPS: {fps:F1}";
 
-                // Reset counters
                 _frameCount = 0;
                 _fpsTimer = 0.0;
             }
@@ -118,19 +106,22 @@ namespace Maelstrom.Corals
             }
         }
 
+
         private static void OnResize(Vector2D<int> size)
         {
             _screenSize = size;
             _window.Size = _screenSize;
             _gl.Viewport(0, 0, (uint)_screenSize.X, (uint)_screenSize.Y);
 
-            // Update post-processor with new screen size
-            //_postProcessor?.UpdateScreenSize(_screenSize);
+            // Update screen size in all display objects
+            foreach (var obj in _renderer.Objects)
+            {
+                obj.UpdateScreenSize(_screenSize);
+            }
         }
 
         private static void OnClosing()
         {
-            _postProcessor?.Dispose();
             _renderer?.Dispose();
             _shaderManager?.Dispose();
         }
