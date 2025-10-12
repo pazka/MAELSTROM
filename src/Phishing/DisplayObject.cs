@@ -5,6 +5,7 @@ using System.Numerics;
 namespace Maelstrom.Phishing
 {
     using Point = Vector2D<float>;
+    using Dim = Vector2D<float>;
     /// <summary>
     /// Represents an object that displays a shader at a specific world position
     /// </summary>
@@ -23,32 +24,35 @@ namespace Maelstrom.Phishing
         // Transformation matrices
         public Matrix4x4 TranslationMatrix { get; private set; } = Matrix4x4.Identity;
         public Matrix4x4 RotationMatrix { get; private set; } = Matrix4x4.Identity;
-        public Matrix4x4 ScaleMatrix { get; private set; } = Matrix4x4.Identity;
+        public Matrix4x4 ObjectScaleMatrix { get; private set; } = Matrix4x4.Identity;
+        public Matrix4x4 ScreenScaleMatrix { get; private set; } = Matrix4x4.Identity;
         public Matrix4x4 ModelMatrix { get; private set; } = Matrix4x4.Identity;
 
         public Point Position { get; private set; }
         public float Rotation { get; private set; }
-        public float Scale { get; private set; } = 1.0f;
+        public Dim ObjectScale { get; private set; } = new(1.0f, 1.0f);
+        public Dim ScreenScale { get; private set; } = new(1.0f, 1.0f);
 
-
-        public unsafe DisplayObject(GL gl, uint shaderProgram, Point position)
+        public unsafe DisplayObject(GL gl, uint shaderProgram)
         {
             _gl = gl;
             _shaderProgram = shaderProgram;
             _random = new Random();
-            Position = position;
+            Position = new Point(0, 0);
+            ObjectScale = new(1.0f, 1.0f);
+            ScreenScale = new(1.0f, 1.0f);
 
             _timeUniformLocation = _gl.GetUniformLocation(_shaderProgram, "iTime");
             _modelMatrixUniformLocation = _gl.GetUniformLocation(_shaderProgram, "uModel");
 
-            //vertex and texture coordinates
+            // Fullscreen vertices (-1,1 to 1,-1) with texture coordinates
             float[] vertices =
         {
         //       aPosition     | aTexCoords
-            1f,  1f,  1.0f, 1.0f,
-            1f, -1f,  1.0f, 0.0f,
-            -1f, -1f,  0.0f, 0.0f,
-            -1f,  1f,  0.0f, 1.0f
+            1.0f,  1.0f,  1.0f, 1.0f,  // Top right
+            1.0f, -1.0f,  1.0f, 0.0f,  // Bottom right
+            -1.0f, -1.0f,  0.0f, 0.0f, // Bottom left
+            -1.0f,  1.0f,  0.0f, 1.0f  // Top left
         };
 
 
@@ -95,7 +99,6 @@ namespace Maelstrom.Phishing
             _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
 
             // Initialize transformation matrices
-            SetPosition(position);
             UpdateModelMatrix();
         }
 
@@ -108,24 +111,34 @@ namespace Maelstrom.Phishing
         {
             Position = position;
             TranslationMatrix = Matrix4x4.CreateTranslation(position.X, position.Y, 0.0f);
+            UpdateModelMatrix();
         }
 
         public void SetRotation(float rotation)
         {
             Rotation = rotation;
             RotationMatrix = Matrix4x4.CreateRotationZ(rotation);
+            UpdateModelMatrix();
         }
 
-        public void SetScale(float scale)
+        public void SetObjectScale(Dim scale)
         {
-            Scale = scale;
-            ScaleMatrix = Matrix4x4.CreateScale(scale, scale, 1.0f);
+            ObjectScale = scale;
+            ObjectScaleMatrix = Matrix4x4.CreateScale(scale.X, scale.Y, 1.0f);
+            UpdateModelMatrix();
+        }
+
+        public void SetScreenScale(Dim scale)
+        {
+            ScreenScale = scale;
+            ScreenScaleMatrix = Matrix4x4.CreateScale(scale.X, scale.Y, 1.0f);
+            UpdateModelMatrix();
         }
 
         private void UpdateModelMatrix()
         {
-            // Combine transformations: Scale * Rotation * Translation
-            ModelMatrix = ScaleMatrix * RotationMatrix * TranslationMatrix;
+            // Combine transformations: ScreenScale * ObjectScale * Rotation * Translation
+            ModelMatrix = ScreenScaleMatrix * ObjectScaleMatrix * RotationMatrix * TranslationMatrix;
         }
 
 

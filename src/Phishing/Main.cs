@@ -7,6 +7,7 @@ using System.Drawing;
 namespace Maelstrom.Phishing
 {
     using Point = Vector2D<float>;
+    using Dim = Vector2D<float>;
 
     public class Program
     {
@@ -29,7 +30,7 @@ namespace Maelstrom.Phishing
             WindowOptions options = WindowOptions.Default with
             {
                 Size = _screenSize,
-                Title = "MAELSTROM ! - Phishing"
+                Title = "MAELSTROM ! - Phishing",
             };
 
             _window = Window.Create(options);
@@ -46,6 +47,8 @@ namespace Maelstrom.Phishing
         {
             // Initialize OpenGL
             _gl = _window.CreateOpenGL();
+            _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.DstAlpha);
+            _gl.Enable(GLEnum.Blend);
             _gl.ClearColor(Color.Black);
 
             // Initialize managers
@@ -54,7 +57,7 @@ namespace Maelstrom.Phishing
             _phishingObjects = new List<DataObject>();
 
             // Load shaders
-            _shaderManager.LoadShader("default", "assets/shaders/default.vert", "assets/shaders/default.frag");
+            _shaderManager.LoadShader("default", "assets/shaders/phishing.vert", "assets/shaders/default.frag");
 
             // Set up input
             _inputContext = _window.CreateInput();
@@ -68,7 +71,6 @@ namespace Maelstrom.Phishing
                 _inputContext.Mice[i].MouseMove += OnMouseMove;
             }
 
-            // Spawn 5 phishing objects with random positions and velocities
             SpawnPhishingObjects();
         }
 
@@ -80,8 +82,7 @@ namespace Maelstrom.Phishing
 
         private static void OnRender(double deltaTime)
         {
-            // Render the scene to framebuffer (don't clear screen)
-            _renderer.Render(false);
+            _renderer.Render(true);
             // Update FPS counter
             _frameCount++;
             _fpsTimer += deltaTime;
@@ -129,7 +130,7 @@ namespace Maelstrom.Phishing
         {
             Random random = new Random();
 
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 10; i++)
             {
                 // Random starting position
                 Point startPos = new Point(
@@ -144,10 +145,10 @@ namespace Maelstrom.Phishing
                 );
 
                 // Create display object
-                DisplayObject displayObj = new DisplayObject(_gl, _shaderManager.getShaderProgram("default"), startPos);
+                DisplayObject displayObj = new DisplayObject(_gl, _shaderManager.getShaderProgram("default"));
 
-                // Create data object
-                DataObject dataObj = new DataObject(displayObj, startPos, velocity, _screenSize);
+                // Create data object with 10x10 pixel size
+                DataObject dataObj = new DataObject(displayObj, startPos, velocity, _screenSize, new Dim(10, 10));
 
                 // Add to collections
                 _phishingObjects.Add(dataObj);

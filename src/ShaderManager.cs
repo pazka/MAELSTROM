@@ -1,6 +1,6 @@
 using Silk.NET.OpenGL;
 
-namespace Maelstrom.Phishing
+namespace Maelstrom
 {
     /// <summary>
     /// Manages shader compilation and loading

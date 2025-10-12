@@ -4,6 +4,7 @@ using Silk.NET.Maths;
 namespace Maelstrom.Phishing
 {
     using Point = Vector2D<float>;
+    using Dim = Vector2D<float>;
     /// <summary>
     /// Represents data/logic for an object that controls its display object
     /// </summary>
@@ -13,20 +14,28 @@ namespace Maelstrom.Phishing
         public Point Velocity { get; set; }
         public Point Position { get; private set; }
         public float Rotation { get; private set; }
-        public float Scale { get; private set; }
+        public Dim PixelSize { get; private set; }
 
         private readonly Random _random;
         private readonly Vector2D<int> _screenSize;
 
-        public DataObject(DisplayObject displayObject, Point initialPosition, Point initialVelocity, Vector2D<int> screenSize)
+        public DataObject(DisplayObject displayObject, Point initialPosition, Point initialVelocity, Vector2D<int> screenSize, Dim pixelSize)
         {
             DisplayObject = displayObject;
             Position = initialPosition;
             Velocity = initialVelocity;
             Rotation = 0.0f;
-            Scale = 1.0f;
             _random = new Random();
             _screenSize = screenSize;
+            PixelSize = pixelSize;
+
+            // Calculate screen scale based on pixel size
+            // Convert pixel size to normalized screen coordinates
+            Dim screenScale = new(
+                PixelSize.X / _screenSize.X,
+                PixelSize.Y / _screenSize.Y
+            );
+            DisplayObject.SetScreenScale(screenScale);
 
             // Set initial position in display object
             SetPosition(Position);
@@ -34,7 +43,6 @@ namespace Maelstrom.Phishing
 
         public void Update(float deltaTime)
         {
-            return;
             // Update position based on velocity
             Position += Velocity * deltaTime;
 
@@ -47,7 +55,6 @@ namespace Maelstrom.Phishing
             // Update display object
             SetPosition(Position);
             SetRotation(Rotation);
-            SetScale(Scale);
         }
 
         public void SetVelocity(Point velocity)
@@ -55,10 +62,15 @@ namespace Maelstrom.Phishing
             Velocity = velocity;
         }
 
-        public void SetScale(float scale)
+        public void SetPixelSize(Dim pixelSize)
         {
-            Scale = scale;
-            DisplayObject.SetScale(scale);
+            PixelSize = pixelSize;
+            // Recalculate screen scale based on new pixel size
+            Dim screenScale = new(
+                PixelSize.X / _screenSize.X,
+                PixelSize.Y / _screenSize.Y
+            );
+            DisplayObject.SetScreenScale(screenScale);
         }
 
         public void SetRotation(float rotation)
@@ -70,7 +82,12 @@ namespace Maelstrom.Phishing
         public void SetPosition(Point p)
         {
             Position = p;
-            Point normalizedPosition = new(p.X / _screenSize.X, p.Y / _screenSize.Y);
+            // Convert pixel position to normalized coordinates (-1 to 1)
+            // Position 0 maps to -1 (screen start), Position screenSize maps to 1 (screen end)
+            Point normalizedPosition = new(
+                (p.X / _screenSize.X) * 2.0f - 1.0f,
+                (p.Y / _screenSize.Y) * 2.0f - 1.0f
+            );
             DisplayObject.SetPosition(normalizedPosition);
         }
     }

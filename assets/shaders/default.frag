@@ -12,5 +12,5 @@ void main()
     float circle = smoothstep(radius, 0.0, dist); // smooth gradient from center to edge
 
     vec3 color = vec3(circle); // black (0) at center to white (1) at edge
-    FragColor = vec4(color, 1.0);
+    FragColor = vec4(vec3(1), circle);
 }

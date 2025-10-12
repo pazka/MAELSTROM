@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 namespace Maelstrom.Corals
 {
     using Point = Vector2D<float>;
-    
+
     public class Program
     {
         private static IWindow _window;
@@ -56,11 +56,11 @@ namespace Maelstrom.Corals
             _renderer = new Renderer(_gl);
 
             // Load shaders
-            _causticShader = _shaderManager.LoadShader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
-            _postProcessShader = _shaderManager.LoadShader("assets/shaders/postprocess_vertex.vert", "assets/shaders/postprocess_fragment.frag");
+            _causticShader = _shaderManager.LoadShader("coral", "assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
+            _postProcessShader = _shaderManager.LoadShader("coral", "assets/shaders/postprocess_vertex.vert", "assets/shaders/postprocess_fragment.frag");
 
             // Create some shader objects at different positions
-            
+
 
             // Initialize post-processor
             _postProcessor = new PostProcessor(_gl, _postProcessShader, _screenSize);
@@ -85,7 +85,7 @@ namespace Maelstrom.Corals
         }
 
         private static void OnRender(double deltaTime)
-        {            
+        {
             // Render the scene to framebuffer (don't clear screen)
             _renderer.Render(false);
             // Update FPS counter
@@ -123,7 +123,7 @@ namespace Maelstrom.Corals
             _screenSize = size;
             _window.Size = _screenSize;
             _gl.Viewport(0, 0, (uint)_screenSize.X, (uint)_screenSize.Y);
-            
+
             // Update post-processor with new screen size
             //_postProcessor?.UpdateScreenSize(_screenSize);
         }
