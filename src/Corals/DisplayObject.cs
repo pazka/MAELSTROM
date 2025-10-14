@@ -17,6 +17,7 @@ namespace Maelstrom.Corals
         private readonly int _timeUniformLocation;
         private readonly int _seedUniformLocation;
         private readonly int _resolutionUniformLocation;
+        private readonly int _maelstromUniformLocation;
         private readonly float seed;
         private Vector2D<int> _screenSize;
 
@@ -31,6 +32,7 @@ namespace Maelstrom.Corals
             _timeUniformLocation = _gl.GetUniformLocation(_shaderProgram, "iTime");
             _seedUniformLocation = _gl.GetUniformLocation(_shaderProgram, "iSeed");
             _resolutionUniformLocation = _gl.GetUniformLocation(_shaderProgram, "iResolution");
+            _maelstromUniformLocation = _gl.GetUniformLocation(_shaderProgram, "iMaelstrom");
 
             //vertex and texture coordinates
             var vertices = new float[] {
@@ -96,7 +98,6 @@ namespace Maelstrom.Corals
         // Render pipeline: Upload data → Bind shader → Bind VAO → Set uniforms → Draw
         public unsafe void Render(float time)
         {
-            _gl.Clear(ClearBufferMask.ColorBufferBit);
             // UseProgram: Activates shader pipeline on GPU
             _gl.UseProgram(_shaderProgram);
             // BindVertexArray: Restores vertex layout and buffer bindings
@@ -105,6 +106,7 @@ namespace Maelstrom.Corals
             // Uniforms: Pass data to shader (executes on GPU)
             _gl.Uniform1(_timeUniformLocation, time);
             _gl.Uniform1(_seedUniformLocation, seed);
+            _gl.Uniform1(_maelstromUniformLocation, 1 - (6 / time));
             _gl.Uniform2(_resolutionUniformLocation, (float)_screenSize.X, (float)_screenSize.Y);
 
             _gl.DrawElements(GLEnum.Triangles, 4 * 3, GLEnum.UnsignedInt, (void*)0);

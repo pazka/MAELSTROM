@@ -4,6 +4,7 @@ in vec2 uv;
 in vec2 resolution;
 uniform float iTime;
 uniform float iSeed;
+uniform float iMaelstrom;
 
 #define tau 6.28318530718
 
@@ -71,14 +72,14 @@ float voronoi(vec2 uv, float t, float seed, float size) {
 void main()
 {    
     // Calculate aspect ratio and adjust UV coordinates for square aspect
-    vec2 squareUv = (2.*uv - resolution.xy)/resolution.y;
+    vec2 squareUv =vec2(uv.x * resolution.x / resolution.y,uv.y);
+    squareUv = vec2(squareUv.x + iSeed,squareUv.y - iSeed);
     
-    
-    float t = iTime * .35;
+    float t = iTime * iSeed;
     
 	// Distort uv coordinates
-    float amplitude = .12;
-    float turbulence = .5;
+    float amplitude = iSeed;
+    float turbulence = iSeed;
    // uv.xy += sin01(uv.x*turbulence + t) * amplitude;
    // uv.xy -= sin01(uv.y*turbulence + t) * amplitude;
     
@@ -89,13 +90,13 @@ void main()
     v += voronoi(squareUv, t * 4., 0. + iSeed, 4. - sizeDistortion + iSeed) / 2.;
     
     // Foreground color
-    vec3 col = v * vec3(.55, .75, 1.);
+    vec3 col = v * vec3(0.,0., 1.);
+    float alpha =col.z;
     
     // Background color
-    col += (1.-v) * vec3(.0, .0,.0);
+    col += (1.-v) * vec3(.0, .0,iMaelstrom);
 
-    float alpha = (col.x * col.y * col.z);
     
     // Output to screen
-    FragColor = vec4(col,1.);
+    FragColor = vec4(col.x,col.y,col.z*iMaelstrom,alpha);
 }

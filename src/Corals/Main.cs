@@ -45,14 +45,18 @@ namespace Maelstrom.Corals
         private static void OnLoad()
         {
             _gl = _window.CreateOpenGL();
-            _gl.BlendFunc(BlendingFactor.OneMinusDstColor, BlendingFactor.DstColor);
+            // Additive blending for superposition - overlapping areas get brighter
+
+            _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.DstAlpha);
             _gl.Enable(GLEnum.Blend);
             _gl.ClearColor(Color.Black);
 
             _shaderManager = new ShaderManager(_gl);
             _renderer = new Renderer(_gl);
 
-            _shaderManager.LoadShader("coral", "assets/shaders/corals.vert", "assets/shaders/corals.frag");
+            _shaderManager.LoadShader("coral_pos", "assets/shaders/corals/corals.vert", "assets/shaders/corals/corals_pos.frag");
+            _shaderManager.LoadShader("coral_neu", "assets/shaders/corals/corals.vert", "assets/shaders/corals/corals_neu.frag");
+            _shaderManager.LoadShader("coral_neg", "assets/shaders/corals/corals.vert", "assets/shaders/corals/corals_neg.frag");
 
             _inputContext = _window.CreateInput();
             for (int i = 0; i < _inputContext.Keyboards.Count; i++)
@@ -65,9 +69,9 @@ namespace Maelstrom.Corals
                 _inputContext.Mice[i].MouseMove += OnMouseMove;
             }
 
-            _renderer.AddObject(new DisplayObject(_gl, _shaderManager.getShaderProgram("coral"), _screenSize));
-            _renderer.AddObject(new DisplayObject(_gl, _shaderManager.getShaderProgram("coral"), _screenSize));
-            _renderer.AddObject(new DisplayObject(_gl, _shaderManager.getShaderProgram("coral"), _screenSize));
+            _renderer.AddObject(new DisplayObject(_gl, _shaderManager.getShaderProgram("coral_neg"), _screenSize));
+            _renderer.AddObject(new DisplayObject(_gl, _shaderManager.getShaderProgram("coral_pos"), _screenSize));
+            _renderer.AddObject(new DisplayObject(_gl, _shaderManager.getShaderProgram("coral_neu"), _screenSize));
         }
 
         private static void OnUpdate(double deltaTime)
@@ -77,7 +81,7 @@ namespace Maelstrom.Corals
 
         private static void OnRender(double deltaTime)
         {
-            _renderer.Render(false);
+            _renderer.Render(true);
             _frameCount++;
             _fpsTimer += deltaTime;
 
