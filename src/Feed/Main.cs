@@ -4,7 +4,7 @@ using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using System.Drawing;
 
-namespace Maelstrom.Phishing
+namespace Maelstrom.Feed
 {
     using Point = Vector2D<float>;
     using Dim = Vector2D<float>;
@@ -18,7 +18,7 @@ namespace Maelstrom.Phishing
         private static Vector2D<int> _screenSize = new(1920, 1080);
         private static IInputContext _inputContext;
         private static Point _mousePosition = new(0, 0);
-        private static List<DataObject> _phishingObjects;
+        private static List<DataObject> _FeedObjects;
 
         // FPS tracking
         private static int _frameCount = 0;
@@ -30,7 +30,7 @@ namespace Maelstrom.Phishing
             WindowOptions options = WindowOptions.Default with
             {
                 Size = _screenSize,
-                Title = "MAELSTROM ! - Phishing",
+                Title = "MAELSTROM ! - Feed",
             };
 
             _window = Window.Create(options);
@@ -54,10 +54,10 @@ namespace Maelstrom.Phishing
             // Initialize managers
             _shaderManager = new ShaderManager(_gl);
             _renderer = new Renderer(_gl);
-            _phishingObjects = new List<DataObject>();
+            _FeedObjects = new List<DataObject>();
 
             // Load shaders
-            _shaderManager.LoadShader("default", "assets/shaders/phishing.vert", "assets/shaders/phishing.frag");
+            _shaderManager.LoadShader("default", "assets/shaders/Feed.vert", "assets/shaders/Feed.frag");
 
             // Set up input
             _inputContext = _window.CreateInput();
@@ -71,7 +71,7 @@ namespace Maelstrom.Phishing
                 _inputContext.Mice[i].MouseMove += OnMouseMove;
             }
 
-            SpawnPhishingObjects();
+            SpawnFeedObjects();
         }
 
         private static void OnUpdate(double deltaTime)
@@ -90,7 +90,7 @@ namespace Maelstrom.Phishing
             if (_fpsTimer >= _fpsUpdateInterval)
             {
                 double fps = _frameCount / _fpsTimer;
-                _window.Title = $"MAELSTROM ! - Phishing - FPS: {fps:F1}";
+                _window.Title = $"MAELSTROM ! - Feed - FPS: {fps:F1}";
 
                 // Reset counters
                 _frameCount = 0;
@@ -126,7 +126,7 @@ namespace Maelstrom.Phishing
             _shaderManager?.Dispose();
         }
 
-        private static void SpawnPhishingObjects()
+        private static void SpawnFeedObjects()
         {
             Random random = new Random();
 
@@ -151,7 +151,7 @@ namespace Maelstrom.Phishing
                 DataObject dataObj = new DataObject(displayObj, startPos, velocity, _screenSize, new Dim(10, 10));
 
                 // Add to collections
-                _phishingObjects.Add(dataObj);
+                _FeedObjects.Add(dataObj);
                 _renderer.AddObject(dataObj);
             }
         }

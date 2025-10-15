@@ -2,7 +2,7 @@ using Silk.NET.OpenGL;
 using Silk.NET.Maths;
 using System.Numerics;
 
-namespace Maelstrom.Phishing
+namespace Maelstrom.Feed
 {
     using Point = Vector2D<float>;
 

@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StartupObject>Maelstrom.Phishing.Program</StartupObject>
+    <StartupObject>Maelstrom.Feed.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

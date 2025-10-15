@@ -1,7 +1,7 @@
 using Silk.NET.OpenGL;
 using Silk.NET.Maths;
 
-namespace Maelstrom.Phishing
+namespace Maelstrom.Feed
 {
     /// <summary>
     /// Handles post-processing effects using framebuffers
