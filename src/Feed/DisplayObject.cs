@@ -32,6 +32,7 @@ namespace Maelstrom.Feed
         public float Rotation { get; private set; }
         public Dim ObjectScale { get; private set; } = new(1.0f, 1.0f);
         public Dim ScreenScale { get; private set; } = new(1.0f, 1.0f);
+        public bool IsEnabled { get; private set; } = true;
 
         public unsafe DisplayObject(GL gl, uint shaderProgram)
         {
@@ -135,6 +136,11 @@ namespace Maelstrom.Feed
             UpdateModelMatrix();
         }
 
+        public void SetEnabled(bool enabled)
+        {
+            IsEnabled = enabled;
+        }
+
         private void UpdateModelMatrix()
         {
             // Combine transformations: ScreenScale * ObjectScale * Rotation * Translation
@@ -145,6 +151,8 @@ namespace Maelstrom.Feed
         // Render pipeline: Upload data → Bind shader → Bind VAO → Set uniforms → Draw
         public unsafe void Render(float time)
         {
+            if (!IsEnabled) return;
+
             // UseProgram: Activates shader pipeline on GPU
             _gl.UseProgram(_shaderProgram);
             // BindVertexArray: Restores vertex layout and buffer bindings

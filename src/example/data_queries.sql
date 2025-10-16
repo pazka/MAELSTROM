@@ -16,6 +16,11 @@ WHERE sentiment <> '';
 "count"	"max"	"min"
 4382504	"2025-08-10 12:30:00"	"2023-02-07 14:55:20"
 ------------------------------------------------------------------------
+SELECT COUNT(*),MAX(inserted_at),MIN(inserted_at),MAX(inserted_at)-MIN(inserted_at) FROM tweets_users
+
+"count"	"max"	"min"
+11920770	"2025-08-10 12:30:00"	"2023-02-07 14:55:20" "915 days 00:59:31"
+------------------------------------------------------------------------
 
 SELECT 
 	COUNT(*)filter (where sentiment='positive') as pos,

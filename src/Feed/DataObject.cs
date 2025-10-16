@@ -15,6 +15,7 @@ namespace Maelstrom.Feed
         public Point Position { get; private set; }
         public float Rotation { get; private set; }
         public Dim PixelSize { get; private set; }
+        public float CreationTime { get; set; } = 0.0f; // Normalized creation time
 
         private readonly Random _random;
         private readonly Vector2D<int> _screenSize;

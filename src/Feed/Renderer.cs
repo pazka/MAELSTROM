@@ -3,6 +3,8 @@ using Silk.NET.Maths;
 
 namespace Maelstrom.Feed
 {
+    using Point = Vector2D<float>;
+    using Dim = Vector2D<float>;
     /// <summary>
     /// Manages and renders multiple DataObjects
     /// </summary>
@@ -10,11 +12,13 @@ namespace Maelstrom.Feed
     {
         private readonly GL _gl;
         private readonly List<DataObject> _objects;
+        private readonly ObjectPool _objectPool;
         private float _time;
 
-        public Renderer(GL gl)
+        public Renderer(GL gl, ObjectPool objectPool)
         {
             _gl = gl;
+            _objectPool = objectPool;
             _objects = new List<DataObject>();
             _time = 0.0f;
         }
@@ -33,6 +37,34 @@ namespace Maelstrom.Feed
         public void RemoveObject(DataObject dataObject)
         {
             _objects.Remove(dataObject);
+        }
+
+        /// <summary>
+        /// Create a new DataObject using the object pool
+        /// </summary>
+        public DataObject CreateDataObject(Point initialPosition, Point initialVelocity, Vector2D<int> screenSize, Dim pixelSize)
+        {
+            var displayObject = _objectPool.GetObject();
+            if (displayObject == null)
+            {
+                Console.WriteLine("Warning: Object pool exhausted, cannot create new DataObject");
+                return null;
+            }
+
+            var dataObject = new DataObject(displayObject, initialPosition, initialVelocity, screenSize, pixelSize);
+            _objects.Add(dataObject);
+            return dataObject;
+        }
+
+        /// <summary>
+        /// Remove and return a DataObject to the pool
+        /// </summary>
+        public void ReturnDataObject(DataObject dataObject)
+        {
+            if (_objects.Remove(dataObject))
+            {
+                _objectPool.ReturnObject(dataObject.DisplayObject);
+            }
         }
 
         /// <summary>
@@ -60,10 +92,13 @@ namespace Maelstrom.Feed
                 _gl.Clear(ClearBufferMask.ColorBufferBit);
             }
 
-            // Render each object's display object
+            // Render each object's display object (only if enabled)
             foreach (var obj in _objects)
             {
-                obj.DisplayObject.Render(_time);
+                if (obj.DisplayObject.IsEnabled)
+                {
+                    obj.DisplayObject.Render(_time);
+                }
             }
         }
 
@@ -82,11 +117,15 @@ namespace Maelstrom.Feed
         /// </summary>
         public void Dispose()
         {
+            // Return all objects to the pool instead of disposing them
             foreach (var obj in _objects)
             {
-                obj.DisplayObject.Dispose();
+                _objectPool.ReturnObject(obj.DisplayObject);
             }
             _objects.Clear();
+            
+            // Dispose the object pool
+            _objectPool.Dispose();
         }
     }
 }

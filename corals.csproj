@@ -7,15 +7,24 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StartupObject>Maelstrom.Corals.Program</StartupObject>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Npgsql" Version="9.0.4" />
     <PackageReference Include="Silk.NET.Input" Version="2.22.0" />
     <PackageReference Include="Silk.NET.OpenGL" Version="2.22.0" />
     <PackageReference Include="Silk.NET.Windowing" Version="2.22.0" />
     <PackageReference Include="StbImageSharp" Version="2.30.15" />  
   </ItemGroup>
-  <ItemGroup >
+  
+  <ItemGroup>
+    <Compile Include="src\Common.cs" />
+    <Compile Include="src\ShaderManager.cs" />
+    <Compile Include="src\Corals\**\*.cs" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <None Update="assets\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
