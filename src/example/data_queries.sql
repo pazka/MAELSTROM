@@ -137,3 +137,22 @@ SELECT SUM(total)total,SUM(pos)post,SUM(neu)neu,SUM(neg)neg,date(dateMonth) FROM
 	ORDER BY  dateMonth,followers DESC,screen_name
 	)
 GROUP BY dateMonth
+
+-------------------------------------------------------------
+Nb account that twwet in a day 
+
+SELECT 
+    dateMonth,
+    COUNT(*) FILTER (WHERE followers_count < 1000) AS total_account,
+    COUNT(*) FILTER (WHERE followers_count > 1000 AND followers_count < 10000) AS NbMoreThan1000Followers,
+    COUNT(*) FILTER (WHERE followers_count > 10000) AS NbMoreThan10000Followers
+FROM (
+    SELECT 
+        to_char(date, 'YYYY-MM-dd') AS dateMonth,
+        followers_count,
+        screen_name
+    FROM tweets_users
+    -- WHERE to_char(inserted_at, 'YYYY-MM-dd') = '2023-11-07'
+) sub
+GROUP BY dateMonth
+ORDER BY dateMonth ASC;

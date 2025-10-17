@@ -14,6 +14,7 @@ namespace Maelstrom.Feed
     public class Program
     {
         private static IWindow _window;
+        private static IWindow _window2;
         private static GL _gl;
         private static Renderer _renderer;
         private static ShaderManager _shaderManager;
@@ -25,6 +26,8 @@ namespace Maelstrom.Feed
         private static int _frameCount = 0;
         private static double _fpsTimer = 0.0;
         private static double _fpsUpdateInterval = 0.5; // Update FPS every 0.5 seconds
+        private static float _internalMaelstrom = 0f;
+        private static float _externalMaelstrom = 0f;
 
         // Data-driven display management
         private static DataPoint[] _data;
@@ -61,6 +64,20 @@ namespace Maelstrom.Feed
             _window.Closing += OnClosing;
             Console.WriteLine("Loading Data...");
 
+            WindowOptions options2 = WindowOptions.Default with
+            {
+                Size = _screenSize,
+                Title = "MAELSTROM ! - Feed",
+                WindowState = WindowState.Fullscreen,
+                Position = new(1920, 0),
+            };
+            _window2 = Window.Create(options);
+            _window2.Load += OnLoad;
+            _window2.Update += OnUpdate;
+            _window2.Render += OnRender;
+            _window2.Resize += OnResize;
+            _window2.Closing += OnClosing;
+
             DataLoader.LoadData();
             _data = DataLoader.GetData();
             _normalizedDisplayDuration = DataLoader.GetNormalizedDuration(TimeSpan.FromDays(7));
@@ -69,6 +86,7 @@ namespace Maelstrom.Feed
             Console.WriteLine($"One week in normalized data space: {_normalizedDisplayDuration:F6}");
 
             _window.Run();
+            _window2.Run();
         }
 
         private static void OnLoad()
