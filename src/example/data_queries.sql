@@ -156,3 +156,37 @@ FROM (
 ) sub
 GROUP BY dateMonth
 ORDER BY dateMonth ASC;
+
+
+-------------------------------------------------------------
+
+accoutn tweets in a day, group the ohter with less thn 5 tweets in OTHERS 
+
+WITH daily_counts AS (
+    SELECT
+        to_char(date, 'YYYY-MM-dd') AS dateDay,
+        screen_name,
+        COUNT(*) AS nb_tweets,
+        MAX(followers_count) AS followers_count
+    FROM tweets_users
+    GROUP BY dateDay, screen_name
+)
+SELECT
+    dateDay,
+    screen_group AS screen_name,
+    SUM(nb_tweets) AS nb_tweets,
+    MAX(followers_count) AS followers_count
+FROM (
+    SELECT
+        dateDay,
+        CASE 
+            WHEN nb_tweets < 5 THEN 'OTHERS'
+            --WHEN followers_count < 10000 THEN 'OTHERS'
+            ELSE screen_name
+        END AS screen_group,
+        nb_tweets,
+        followers_count
+    FROM daily_counts
+) grouped
+GROUP BY dateDay, screen_group
+ORDER BY dateDay ASC, nb_tweets DESC;
